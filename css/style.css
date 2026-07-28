@@ -1,0 +1,566 @@
+/* MAXIguide — styles de base */
+:root {
+  --bg: #fdf4ee;
+  --text: #2b2b2b;
+  --muted: #777;
+  --primary: #e63946;
+  --primary-dark: #c1121f;
+  --card: #ffffff;
+  --error: #c0392b;
+  --radius: 12px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem;
+}
+
+.hero {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.hero h1 {
+  font-size: 2.5rem;
+  margin: 0 0 0.5rem;
+}
+
+.tagline {
+  color: var(--muted);
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+section {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+section h2 {
+  margin-top: 0;
+  font-size: 1.25rem;
+}
+
+.actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.btn {
+  display: inline-block;
+  padding: 0.75rem 1.75rem;
+  border: none;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: #fff;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+}
+
+.btn-secondary:hover {
+  background: rgba(230, 57, 70, 0.08);
+}
+
+.user-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.user-card {
+  padding: 0.6rem 1.25rem;
+  border: 2px solid var(--primary);
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--primary);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.user-card:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
+.create-form {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.create-form input {
+  flex: 1;
+  min-width: 200px;
+  padding: 0.7rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: var(--radius);
+  font-size: 1rem;
+}
+
+.create-form input:focus {
+  outline: 2px solid var(--primary);
+  border-color: transparent;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.error {
+  color: var(--error);
+  margin-top: 0.75rem;
+}
+
+.link-back {
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.link-back:hover {
+  color: var(--text);
+  text-decoration: underline;
+}
+
+/* --- Header commun --- */
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0.6rem 1.25rem;
+  background: var(--card);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+  flex-wrap: wrap;
+}
+
+.brand {
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.5rem;
+  flex: 1;
+}
+
+.tab {
+  padding: 0.4rem 0.9rem;
+  border-radius: 999px;
+  color: var(--muted);
+  text-decoration: none;
+  transition: background 0.15s, color 0.15s;
+}
+
+.tab:hover {
+  color: var(--text);
+}
+
+.tab.active {
+  background: var(--primary);
+  color: #fff;
+}
+
+.user-box {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.user-name {
+  font-weight: 600;
+}
+
+.completion-badge {
+  background: rgba(230, 57, 70, 0.12);
+  color: var(--primary-dark);
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.switch-user {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 1.1rem;
+}
+
+.switch-user:hover {
+  color: var(--text);
+}
+
+/* --- Vue liste / plan --- */
+.view-toggle {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
+.btn-toggle {
+  background: var(--card);
+  color: var(--muted);
+  border: 1px solid #ddd;
+}
+
+.btn-toggle.active {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
+}
+
+.domaine-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.domaine-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.9rem 1.2rem;
+  border: 1px solid #e2e2e2;
+  border-radius: var(--radius);
+  text-decoration: none;
+  color: var(--text);
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.domaine-card:hover {
+  border-color: var(--primary);
+  box-shadow: 0 2px 8px rgba(230, 57, 70, 0.15);
+}
+
+.domaine-status {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.domaine-status.rated {
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+
+.plan-placeholder {
+  text-align: center;
+  padding: 3rem 1rem;
+  border: 2px dashed #ccc;
+  border-radius: var(--radius);
+  font-size: 1.1rem;
+}
+
+/* --- Notation --- */
+.notation-title {
+  margin: 0 0 0.25rem;
+  text-align: center;
+}
+
+.notation-title + .tagline {
+  text-align: center;
+}
+
+.stars {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin: 1.5rem 0 0.5rem;
+}
+
+.star {
+  background: none;
+  border: none;
+  font-size: 2.5rem;
+  cursor: pointer;
+  color: #c9c9c9;
+  transition: transform 0.1s, color 0.15s;
+  padding: 0.1rem;
+}
+
+.star:hover {
+  transform: scale(1.15);
+}
+
+.star.filled {
+  color: #f5b301;
+}
+
+.saved-msg {
+  text-align: center;
+  color: #2e7d32;
+  font-weight: 600;
+}
+
+/* --- Moyennes --- */
+.stats-row {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.stat-tile {
+  flex: 1;
+  min-width: 140px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(230, 57, 70, 0.07);
+  border-radius: var(--radius);
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+}
+
+.stat-label {
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.data-table th,
+.data-table td {
+  text-align: left;
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid #eee;
+}
+
+.data-table th {
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* --- Erreurs base de données --- */
+.db-error-banner {
+  background: #fdecea;
+  color: var(--error);
+  padding: 0.75rem 1.25rem;
+  text-align: center;
+  font-weight: 600;
+}
+
+/* --- Notation : rangées de notes et de stickers --- */
+.note-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.note-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.note-label {
+  font-weight: 600;
+}
+
+.symbol-btns {
+  display: flex;
+  gap: 0.15rem;
+}
+
+.symbol {
+  background: none;
+  border: none;
+  font-size: 1.6rem;
+  cursor: pointer;
+  color: #c9c9c9;
+  padding: 0.1rem;
+  transition: transform 0.1s;
+}
+
+.symbol:hover {
+  transform: scale(1.15);
+}
+
+.symbol.filled {
+  color: #f5b301;
+}
+
+.sticker-hint {
+  margin-top: -0.5rem;
+}
+
+.commentaire {
+  width: 100%;
+  padding: 0.7rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.commentaire:focus {
+  outline: 2px solid var(--primary);
+  border-color: transparent;
+}
+
+section .actions {
+  margin-top: 1rem;
+}
+
+/* --- Guides des invités --- */
+.user-select {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid #ccc;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  background: var(--card);
+}
+
+.guide-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.guide-card {
+  border: 1px solid #e2e2e2;
+  border-radius: var(--radius);
+  padding: 0.9rem 1.2rem;
+}
+
+.guide-card-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  font-weight: 600;
+}
+
+.guide-notes {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 0.35rem;
+  color: var(--muted);
+}
+
+.guide-note:empty {
+  display: none;
+}
+
+.guide-comment {
+  margin: 0.5rem 0 0;
+  font-style: italic;
+  color: var(--muted);
+}
+
+/* --- Tableaux larges --- */
+.table-scroll {
+  overflow-x: auto;
+}
+
+/* --- Plan du parc (SVG) --- */
+.plan-container {
+  width: 100%;
+  overflow: hidden;
+  border-radius: var(--radius);
+}
+
+.plan-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.plan-stand circle {
+  fill: #fff;
+  stroke: #e63946;
+  stroke-width: 3;
+}
+
+.plan-stand .stand-num {
+  fill: #e63946;
+}
+
+.plan-stand.done circle {
+  fill: #7cb518;
+  stroke: #5c8a0e;
+}
+
+.plan-stand.done .stand-num {
+  fill: #fff;
+}
+
+.plan-stand.clickable {
+  cursor: pointer;
+}
+
+.plan-stand.clickable:hover circle {
+  stroke-width: 5;
+}
+
+.stand-badge {
+  paint-order: stroke;
+  stroke: #fff;
+  stroke-width: 2;
+}

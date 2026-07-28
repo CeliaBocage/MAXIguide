@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MAXIguide — Qui êtes-vous ?</title>
+  <link rel="stylesheet" href="../../css/style.css">
+</head>
+<body>
+  <main class="container">
+    <header class="hero">
+      <h1>Qui êtes-vous ?</h1>
+      <p class="tagline">Choisissez votre profil, ou créez-le si vous n'êtes pas dans la liste.</p>
+    </header>
+
+    <section>
+      <h2>Participants</h2>
+      <ul id="user-list" class="user-list">
+        <!-- rempli par users.js -->
+      </ul>
+      <p id="no-users" class="muted" hidden>Personne pour l'instant — créez le premier profil !</p>
+    </section>
+
+    <section>
+      <h2>Créer un profil</h2>
+      <form id="create-user-form" class="create-form">
+        <input type="text" id="new-user-name" placeholder="Votre prénom ou pseudo" required maxlength="30" autocomplete="off">
+        <button type="submit" class="btn btn-primary">Créer et entrer</button>
+      </form>
+      <p id="form-error" class="error" hidden></p>
+    </section>
+
+    <div class="actions">
+      <a href="../guide/index.html" class="link-back">Juste regarder les guides des autres →</a>
+      <a href="../../index.html" class="link-back">← Retour à l'accueil</a>
+    </div>
+  </main>
+
+  <script src="../../secrets/config.js"></script>
+  <script src="../../js/db.js"></script>
+  <script src="../../js/storage.js"></script>
+  <script src="users.js"></script>
+</body>
+</html>

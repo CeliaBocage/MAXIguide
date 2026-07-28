@@ -1,0 +1,5 @@
+# Secrets (config Turso : URL + token) — seul l'exemple est versionné
+secrets/*
+!secrets/config.example.js
+
+.DS_Store

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MAXIguide — Moyennes</title>
+  <link rel="stylesheet" href="../../css/style.css">
+</head>
+<body>
+  <main class="container">
+    <section>
+      <h2>Le groupe</h2>
+      <div class="stats-row">
+        <div class="stat-tile">
+          <span id="stat-avg-completion" class="stat-value">—</span>
+          <span class="stat-label">Complétion moyenne</span>
+        </div>
+        <div class="stat-tile">
+          <span id="stat-coverage" class="stat-value">—</span>
+          <span class="stat-label">Domaines couverts par le groupe</span>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <h2>Complétion par participant</h2>
+      <table class="data-table">
+        <thead>
+          <tr><th>Participant</th><th>Domaines notés</th><th>Complétion</th></tr>
+        </thead>
+        <tbody id="users-table">
+          <!-- rempli par moyennes.js -->
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>Moyennes par domaine</h2>
+      <div class="table-scroll">
+        <table class="data-table">
+          <thead>
+            <tr><th>Domaine</th><th>⚪</th><th>🔴</th><th>🌸</th><th>🥃</th><th>🍇</th><th>❤️</th><th>⭐</th><th>Fiches</th></tr>
+          </thead>
+          <tbody id="domaines-table">
+            <!-- rempli par moyennes.js -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="../../secrets/config.js"></script>
+  <script src="../../js/db.js"></script>
+  <script src="../../js/data/domaines.js"></script>
+  <script src="../../js/storage.js"></script>
+  <script>const BASE = '../../';</script>
+  <script src="../../js/header.js"></script>
+  <script src="moyennes.js"></script>
+</body>
+</html>

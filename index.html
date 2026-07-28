@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MAXIguide — Accueil</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main class="container">
+    <header class="hero">
+      <h1>🍷 MAXIguide</h1>
+      <p class="tagline">Le jeu de dégustation de la fête des vins de Gaillac</p>
+    </header>
+
+    <section class="explication">
+      <h2>Comment ça marche ?</h2>
+      <p>
+        Bienvenue à la fête des vins de Gaillac ! Le principe est simple :
+        parcourez le parc, dégustez, et notez chaque domaine que vous visitez.
+      </p>
+      <ul>
+        <li>🧑 Choisissez votre profil (ou créez-le en deux secondes, sans mot de passe).</li>
+        <li>🍇 Explorez les domaines, en liste ou sur le plan du parc.</li>
+        <li>⭐ Notez chaque domaine dégusté, de 1 à 5 étoiles.</li>
+        <li>📊 Suivez votre score de complétion en continu, et comparez-vous au groupe dans l'onglet Moyennes.</li>
+      </ul>
+      <p>Objectif : 100 % de complétion. Bonne dégustation !</p>
+    </section>
+
+    <div class="actions">
+      <a href="pages/users/index.html" class="btn btn-primary">Faire mon guide</a>
+      <a href="pages/guide/index.html" class="btn btn-secondary">Regarder les guides</a>
+    </div>
+  </main>
+
+  <script src="secrets/config.js"></script>
+  <script src="js/db.js"></script>
+  <script src="js/storage.js"></script>
+  <script>
+    // Si un utilisateur est déjà sélectionné, proposer de reprendre directement
+    (async () => {
+      try {
+        const current = await Storage.getCurrentUser();
+        if (!current) return;
+        const actions = document.querySelector('.actions');
+        const resume = document.createElement('a');
+        resume.href = 'pages/domaines/index.html';
+        resume.className = 'btn btn-secondary';
+        resume.textContent = `Reprendre en tant que ${current.name}`;
+        actions.appendChild(resume);
+      } catch {
+        // Base pas encore configurée ou injoignable : l'accueil reste utilisable
+      }
+    })();
+  </script>
+</body>
+</html>
