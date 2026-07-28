@@ -24,7 +24,7 @@ const Header = {
     nav.className = 'tabs';
     for (const tab of [
       { key: 'domaines', label: t('nav.domaines'), href: BASE + 'pages/domaines/index.html' },
-      { key: 'moyennes', label: t('nav.moyennes'), href: BASE + 'pages/moyennes/index.html' },
+      { key: 'resultats', label: t('nav.resultats'), href: BASE + 'pages/resultats/index.html' },
     ]) {
       const link = document.createElement('a');
       link.href = tab.href;
@@ -45,13 +45,29 @@ const Header = {
     score.id = 'completion-badge';
     score.textContent = '…';
 
+    // Badge ⏳ : fiches en attente de réseau (file de sync de js/storage.js)
+    const sync = document.createElement('span');
+    sync.className = 'sync-badge';
+    sync.hidden = true;
+    const updateSync = (pending) => {
+      sync.hidden = !pending;
+      sync.textContent = `⏳ ${pending}`;
+      sync.title = t('sync.pending', { n: pending });
+    };
+    updateSync(SyncQueue.size());
+    document.addEventListener('maxiguide:sync', (e) => {
+      updateSync(e.detail.pending);
+      // Des fiches viennent de partir : le score de complétion peut bouger
+      if (!e.detail.pending) this.refreshCompletion();
+    });
+
     const switchLink = document.createElement('a');
     switchLink.className = 'switch-user';
     switchLink.href = BASE + 'pages/users/index.html';
     switchLink.title = t('nav.switchUser');
     switchLink.textContent = '⇄';
 
-    userBox.append(name, score, switchLink, I18N.makeToggle());
+    userBox.append(name, score, sync, switchLink, I18N.makeToggle());
     header.append(brand, nav, userBox);
     document.body.prepend(header);
 
@@ -64,7 +80,12 @@ const Header = {
     if (!this.user) return;
     const badge = document.getElementById('completion-badge');
     if (!badge) return;
-    const ratings = await Storage.getUserRatings(this.user.id);
+    let ratings;
+    try {
+      ratings = await Storage.getUserRatings(this.user.id);
+    } catch {
+      return; // hors-ligne sans cache : on garde l'ancien score affiché
+    }
     const rated = Object.keys(ratings).length;
     const pct = DOMAINES.length ? Math.round((rated / DOMAINES.length) * 100) : 0;
     badge.textContent = `${rated}/${DOMAINES.length} · ${pct} %`;

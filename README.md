@@ -12,7 +12,12 @@ Chaque invité choisit son profil (ou le crée, sans mot de passe), puis parcour
 
 Le plan du parc est recréé en SVG interactif d'après le [plan officiel](https://www.fete-vins-gaillac.com/plan-du-parc) : on peut noter un stand en le touchant, et le guide de chaque invité affiche ses stickers posés sur le plan.
 
-Son score de complétion (part des domaines notés) est visible en continu dans le header. L'onglet Moyennes compare tout le groupe, et la page « Guides des invités » permet de feuilleter le guide de chacun — à terme avec ses cœurs et étoiles posés sur le plan du parc.
+Son score de complétion (part des domaines notés) est visible en continu dans le header, et la liste des domaines se filtre (tous / à déguster / notés) pour repérer vite où aller. L'onglet **Résultats** affiche les classements en direct — top par boisson, meilleure bouteille, meilleur domaine, les plus gentils ❤️, les plus étoilés ⭐, les guides les plus complets 📖 — plus les moyennes détaillées du groupe. La page « Guides des invités » permet de feuilleter le guide de chacun, avec ses cœurs et étoiles posés sur le plan du parc.
+
+**Réseau capricieux, pas de panique** : si la 4G du parc lâche, les fiches sont gardées sur
+le téléphone (file de sync en `localStorage`, badge ⏳ dans le header) et repartent toutes
+seules au retour du réseau. Les pages déjà visitées continuent de s'afficher grâce à un
+cache local des lectures.
 
 ## Architecture
 
@@ -20,9 +25,9 @@ Son score de complétion (part des domaines notés) est visible en continu dans 
 index.html                    → accueil : explication du jeu
 pages/
 ├── users/                    → choix ou création de profil (la « connexion »)
-├── domaines/                 → liste des domaines + plan du parc (à venir)
-├── notation/                 → fiche de notation d'un domaine (?domaine=<id>)
-├── moyennes/                 → stats du groupe : complétion, moyennes par couleur, stickers
+├── domaines/                 → liste filtrable des domaines + plan du parc
+├── notation/                 → fiche de notation d'un domaine (?domaine=<id>), nav stand ← →
+├── resultats/                → classements 🏆 + stats du groupe (complétion, moyennes, stickers)
 └── guide/                    → guides des invités en lecture seule (?user=<id>)
 css/style.css                 → styles communs
 js/
@@ -30,8 +35,10 @@ js/
 ├── data/plan.js              → positions des stands sur le plan (rangées, provisoire)
 ├── plan.js                   → rendu SVG du plan du parc (partagé domaines/guide)
 ├── db.js                     → client HTTP Turso (fetch, aucune dépendance)
-├── storage.js                → couche de données : utilisateurs, fiches, stats
-└── header.js                 → header commun : onglets + score de complétion
+├── storage.js                → couche de données + file de sync hors-ligne
+├── i18n.js                   → textes FR/EN (bouton 🇫🇷⇄🇬🇧)
+└── header.js                 → header commun : onglets, score de complétion, badge ⏳
+tests/                        → tests navigateur (ouvrir tests/index.html, réseau simulé)
 secrets/
 ├── config.example.js         → modèle de config (committé)
 └── config.js                 → URL + token Turso (gitignoré, jamais sur GitHub)
@@ -67,6 +74,12 @@ limitée et révoquez-le après la fête (`turso db tokens invalidate lemaxiguid
 ## Lancer le site
 
 Ouvrir `index.html` dans un navigateur, tout simplement. (Ou servir le dossier avec n'importe quel serveur statique, ex. `python3 -m http.server`.)
+
+## Tests
+
+Ouvrir `tests/index.html` dans un navigateur : la vingtaine de tests s'exécute sur place
+(fetch est simulé — pannes de réseau, erreurs Turso, doublons de profils… — rien ne part
+sur le vrai réseau) et la page affiche le total au vert ou les échecs en rouge.
 
 ## TODO
 

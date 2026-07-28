@@ -15,6 +15,39 @@ function showView(view) {
 toggleList.addEventListener('click', () => showView('list'));
 togglePlan.addEventListener('click', () => showView('plan'));
 
+// Chips de filtre au-dessus de la liste : idéal pour repérer d'un coup d'œil
+// ce qu'il reste à déguster.
+function renderFilters(ratings) {
+  const filtersEl = document.getElementById('list-filters');
+  const ratedCount = DOMAINES.filter(d => ratings[d.id]).length;
+  const FILTERS = [
+    { key: 'all', label: t('domaines.filterAll'), count: DOMAINES.length },
+    { key: 'todo', label: t('domaines.filterTodo'), count: DOMAINES.length - ratedCount },
+    { key: 'done', label: t('domaines.filterDone'), count: ratedCount },
+  ];
+
+  const apply = (key) => {
+    for (const btn of filtersEl.children) {
+      btn.classList.toggle('active', btn.dataset.filter === key);
+    }
+    for (const li of listEl.children) {
+      li.hidden = key !== 'all' && li.dataset.status !== key;
+    }
+  };
+
+  filtersEl.replaceChildren();
+  for (const f of FILTERS) {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'filter-chip';
+    btn.dataset.filter = f.key;
+    btn.textContent = `${f.label} (${f.count})`;
+    btn.addEventListener('click', () => apply(f.key));
+    filtersEl.appendChild(btn);
+  }
+  apply('all');
+}
+
 async function main() {
   const user = await Header.mount('domaines');
   if (!user) return;
@@ -24,6 +57,7 @@ async function main() {
 
   for (const domaine of DOMAINES) {
     const li = document.createElement('li');
+    li.dataset.status = ratings[domaine.id] ? 'done' : 'todo';
     const link = document.createElement('a');
     link.className = 'domaine-card';
     link.href = `../notation/index.html?domaine=${encodeURIComponent(domaine.id)}`;
@@ -56,6 +90,8 @@ async function main() {
     li.appendChild(link);
     listEl.appendChild(li);
   }
+
+  renderFilters(ratings);
 
   // Vue plan : stands cliquables, verts quand la fiche existe
   renderPlan(document.getElementById('plan-container'), {

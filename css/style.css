@@ -222,6 +222,17 @@ section h2 {
   white-space: nowrap;
 }
 
+/* Fiches en attente de réseau (file de sync) */
+.sync-badge {
+  background: #fff3cd;
+  color: #8a6d1a;
+  border-radius: 999px;
+  padding: 0.25rem 0.7rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .switch-user {
   color: var(--muted);
   text-decoration: none;
@@ -250,6 +261,32 @@ section h2 {
   background: var(--primary);
   color: #fff;
   border-color: var(--primary);
+}
+
+/* Chips de filtre au-dessus de la liste des domaines */
+.list-filters {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.filter-chip {
+  background: #fff;
+  border: 2px solid #e0d9cf;
+  border-radius: 999px;
+  padding: 0.35rem 0.9rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: var(--muted);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.filter-chip.active {
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .domaine-list {
@@ -337,7 +374,87 @@ section h2 {
   font-weight: 600;
 }
 
-/* --- Moyennes --- */
+/* Navigation stand précédent / suivant */
+.stand-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stand-nav-link {
+  max-width: 48%;
+  padding: 0.6rem 0.9rem;
+  background: var(--card);
+  border: 1px solid #e2e2e2;
+  border-radius: var(--radius);
+  color: var(--text);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  transition: border-color 0.15s;
+}
+
+.stand-nav-link:hover {
+  border-color: var(--primary);
+}
+
+.stand-nav-link.next {
+  margin-left: auto;
+  text-align: right;
+}
+
+/* --- Résultats : classements 🏆 --- */
+.rankings {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 0.75rem;
+}
+
+.ranking-card {
+  border: 1px solid #e2e2e2;
+  border-radius: var(--radius);
+  padding: 0.8rem 1rem;
+}
+
+.ranking-card h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1rem;
+}
+
+.ranking-card .muted {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.podium {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.podium li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.podium-name {
+  flex: 1;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.podium-value {
+  color: var(--muted);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+/* --- Résultats : stats du groupe --- */
 .stats-row {
   display: flex;
   gap: 1rem;

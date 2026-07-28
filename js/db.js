@@ -20,6 +20,15 @@ function parseCell(cell) {
   }
 }
 
+// Une erreur « retryable » est passagère (pas de réseau, serveur surchargé) :
+// la file de synchronisation (js/storage.js) retentera plus tard. Les erreurs
+// de config ou de SQL, elles, ne se règlent pas en réessayant.
+function retryableError(message) {
+  const err = new Error(message);
+  err.retryable = true;
+  return err;
+}
+
 async function dbExecute(sql, args = []) {
   if (typeof TURSO === 'undefined' || TURSO.url.includes('REMPLACER')) {
     throw new Error(t('db.notConfigured'));
@@ -28,21 +37,30 @@ async function dbExecute(sql, args = []) {
   // L'API HTTP attend une URL https:// (turso donne souvent libsql://)
   const baseUrl = TURSO.url.replace(/^libsql:\/\//, 'https://').replace(/\/$/, '');
 
-  const res = await fetch(`${baseUrl}/v2/pipeline`, {
-    method: 'POST',
-    headers: {
-      Authorization: `Bearer ${TURSO.token}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      requests: [
-        { type: 'execute', stmt: { sql, args: args.map(toArg) } },
-        { type: 'close' },
-      ],
-    }),
-  });
+  let res;
+  try {
+    res = await fetch(`${baseUrl}/v2/pipeline`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${TURSO.token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        requests: [
+          { type: 'execute', stmt: { sql, args: args.map(toArg) } },
+          { type: 'close' },
+        ],
+      }),
+    });
+  } catch {
+    throw retryableError(t('db.network'));
+  }
 
-  if (!res.ok) throw new Error(t('db.http', { status: res.status }));
+  if (!res.ok) {
+    const err = new Error(t('db.http', { status: res.status }));
+    err.retryable = res.status >= 500 || res.status === 429;
+    throw err;
+  }
 
   const data = await res.json();
   const first = data.results[0];

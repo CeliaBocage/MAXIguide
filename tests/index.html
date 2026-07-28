@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MAXIguide — Tests</title>
+  <link rel="stylesheet" href="../css/style.css">
+  <style>
+    .test-list { list-style: none; padding: 0; margin: 0; }
+    .test-list li { padding: 0.35rem 0; border-bottom: 1px dashed #eee; font-size: 0.95rem; }
+    .test-pass::before { content: '✅ '; }
+    .test-fail::before { content: '❌ '; }
+    .test-fail { color: var(--error); font-weight: 600; }
+    .test-fail .detail { display: block; font-weight: 400; font-size: 0.85rem; margin-left: 1.6rem; }
+    #summary { font-size: 1.2rem; font-weight: 700; }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <header class="hero">
+      <h1>🧪 Tests MAXIguide</h1>
+      <p class="tagline">Ouvrir cette page dans un navigateur suffit — aucun réseau nécessaire, tout est simulé.</p>
+    </header>
+    <section>
+      <p id="summary">…</p>
+      <ul id="test-results" class="test-list"></ul>
+    </section>
+  </main>
+
+  <!-- Config Turso factice : les tests remplacent fetch, rien ne part jamais sur le réseau -->
+  <script>const TURSO = { url: 'https://turso.test.invalid', token: 'jeton-de-test' };</script>
+  <script src="../js/i18n.js"></script>
+  <script src="../js/db.js"></script>
+  <script src="../js/storage.js"></script>
+  <script src="tests.js"></script>
+</body>
+</html>

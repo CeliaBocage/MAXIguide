@@ -9,8 +9,9 @@ const I18N = (() => {
     fr: {
       // Navigation / header
       'nav.domaines': 'Domaines',
-      'nav.moyennes': 'Moyennes',
+      'nav.resultats': 'Résultats',
       'nav.switchUser': "Changer d'utilisateur",
+      'sync.pending': '{n} fiche(s) en attente de réseau — elles partiront toutes seules dès que possible.',
 
       // Accueil
       'home.pageTitle': 'MAXIguide — Accueil',
@@ -20,7 +21,7 @@ const I18N = (() => {
       'home.step1': '🧑 Choisissez votre profil (ou créez-le en deux secondes, sans mot de passe).',
       'home.step2': '🍇 Explorez les domaines, en liste ou sur le plan du parc.',
       'home.step3': '⭐ Notez chaque domaine dégusté, de 1 à 5 étoiles.',
-      'home.step4': "📊 Suivez votre score de complétion en continu, et comparez-vous au groupe dans l'onglet Moyennes.",
+      'home.step4': "📊 Suivez votre score de complétion en continu, et comparez-vous au groupe dans l'onglet Résultats.",
       'home.goal': 'Objectif : 100 % de complétion. Bonne dégustation !',
       'home.makeGuide': 'Faire mon guide',
       'home.viewGuides': 'Regarder les guides',
@@ -60,6 +61,9 @@ const I18N = (() => {
       'domaines.planHint': 'Touchez un stand pour le noter — les stands verts sont déjà dans votre guide.',
       'domaines.toTaste': 'À déguster',
       'domaines.emptyCard': 'Fiche vide',
+      'domaines.filterAll': 'Tous',
+      'domaines.filterTodo': 'À déguster',
+      'domaines.filterDone': 'Notés',
 
       // Page notation
       'notation.pageTitle': 'MAXIguide — Notation',
@@ -71,6 +75,7 @@ const I18N = (() => {
       'notation.commentPlaceholder': 'Votre note écrite (facultatif) : une anecdote, un vin à retenir…',
       'notation.save': 'Enregistrer',
       'notation.saved': '✔ Fiche enregistrée !',
+      'notation.savedPending': '⏳ Fiche gardée sur cet appareil — elle partira toute seule au retour du réseau !',
       'notation.back': '← Retour aux domaines',
       'notation.lovePeople': 'On a adoré les gens',
       'notation.loveWines': 'Les vins étaient excellents',
@@ -88,8 +93,19 @@ const I18N = (() => {
       'boisson.whisky': '🥃 Whisky',
       'boisson.jus': '🍇 Jus de raisin',
 
-      // Page moyennes
-      'moy.pageTitle': 'MAXIguide — Moyennes',
+      // Page résultats
+      'moy.pageTitle': 'MAXIguide — Résultats',
+      'res.rankingsTitle': '🏆 Les classements',
+      'res.rankingsHint': 'Mis à jour en continu, au fil des dégustations.',
+      'res.best': 'Top {boisson}',
+      'res.bestBottle': '🍾 La meilleure bouteille',
+      'res.bestDomaine': '🏅 Le meilleur domaine',
+      'res.nicest': '❤️ Les plus gentils',
+      'res.starriest': '⭐ Les plus étoilés',
+      'res.completest': '📖 Les guides les plus complets',
+      'res.noRanking': 'Pas encore de notes — à vos verres !',
+      'res.note': '{n} note',
+      'res.notes': '{n} notes',
       'moy.groupTitle': 'Le groupe',
       'moy.avgCompletion': 'Complétion moyenne',
       'moy.coverage': 'Domaines couverts par le groupe',
@@ -133,13 +149,15 @@ const I18N = (() => {
       'db.notConfigured': "Base non configurée : copiez secrets/config.example.js en secrets/config.js et remplissez l'URL et le token Turso.",
       'db.http': 'Erreur Turso : HTTP {status}',
       'db.sql': 'Erreur SQL : {message}',
+      'db.network': 'Réseau injoignable — vos fiches sont gardées sur cet appareil et partiront toutes seules.',
     },
 
     en: {
       // Navigation / header
       'nav.domaines': 'Wineries',
-      'nav.moyennes': 'Averages',
+      'nav.resultats': 'Results',
       'nav.switchUser': 'Switch user',
+      'sync.pending': '{n} card(s) waiting for network — they will be sent automatically as soon as possible.',
 
       // Home
       'home.pageTitle': 'MAXIguide — Home',
@@ -149,7 +167,7 @@ const I18N = (() => {
       'home.step1': '🧑 Pick your profile (or create it in two seconds, no password needed).',
       'home.step2': '🍇 Browse the wineries, as a list or on the park map.',
       'home.step3': '⭐ Rate every winery you taste, from 1 to 5 stars.',
-      'home.step4': '📊 Track your completion score live, and compare yourself with the group in the Averages tab.',
+      'home.step4': '📊 Track your completion score live, and compare yourself with the group in the Results tab.',
       'home.goal': 'Goal: 100% completion. Happy tasting!',
       'home.makeGuide': 'Build my guide',
       'home.viewGuides': 'Browse the guides',
@@ -189,6 +207,9 @@ const I18N = (() => {
       'domaines.planHint': 'Tap a stand to rate it — green stands are already in your guide.',
       'domaines.toTaste': 'To taste',
       'domaines.emptyCard': 'Empty card',
+      'domaines.filterAll': 'All',
+      'domaines.filterTodo': 'To taste',
+      'domaines.filterDone': 'Rated',
 
       // Rating page
       'notation.pageTitle': 'MAXIguide — Rating',
@@ -200,6 +221,7 @@ const I18N = (() => {
       'notation.commentPlaceholder': 'Your written note (optional): a story, a wine to remember…',
       'notation.save': 'Save',
       'notation.saved': '✔ Card saved!',
+      'notation.savedPending': '⏳ Card kept on this device — it will be sent automatically once the network is back!',
       'notation.back': '← Back to the wineries',
       'notation.lovePeople': 'We loved the people',
       'notation.loveWines': 'The wines were excellent',
@@ -217,8 +239,19 @@ const I18N = (() => {
       'boisson.whisky': '🥃 Whisky',
       'boisson.jus': '🍇 Grape juice',
 
-      // Averages page
-      'moy.pageTitle': 'MAXIguide — Averages',
+      // Results page
+      'moy.pageTitle': 'MAXIguide — Results',
+      'res.rankingsTitle': '🏆 The rankings',
+      'res.rankingsHint': 'Updated live, as the tastings go on.',
+      'res.best': 'Top {boisson}',
+      'res.bestBottle': '🍾 The best bottle',
+      'res.bestDomaine': '🏅 The best winery',
+      'res.nicest': '❤️ The nicest ones',
+      'res.starriest': '⭐ The most starred',
+      'res.completest': '📖 The most complete guides',
+      'res.noRanking': 'No ratings yet — raise your glasses!',
+      'res.note': '{n} rating',
+      'res.notes': '{n} ratings',
       'moy.groupTitle': 'The group',
       'moy.avgCompletion': 'Average completion',
       'moy.coverage': 'Wineries covered by the group',
@@ -262,6 +295,7 @@ const I18N = (() => {
       'db.notConfigured': 'Database not configured: copy secrets/config.example.js to secrets/config.js and fill in the Turso URL and token.',
       'db.http': 'Turso error: HTTP {status}',
       'db.sql': 'SQL error: {message}',
+      'db.network': 'Network unreachable — your cards are kept on this device and will be sent automatically.',
     },
   };
 

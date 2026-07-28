@@ -217,11 +217,12 @@ async function main() {
     saveBtn.disabled = true;
     savedMsg.hidden = true;
     try {
-      await Storage.saveRating(user.id, domaine.id, {
+      const { queued } = await Storage.saveRating(user.id, domaine.id, {
         ...fiche,
         commentaire: commentaireEl.value,
       });
       await Header.refreshCompletion();
+      savedMsg.textContent = t(queued ? 'notation.savedPending' : 'notation.saved');
       savedMsg.hidden = false;
     } catch (err) {
       showDbError(err);
@@ -229,6 +230,22 @@ async function main() {
       saveBtn.disabled = false;
     }
   });
+
+  // Navigation stand précédent / suivant (dans l'ordre de la liste des domaines)
+  const index = DOMAINES.indexOf(domaine);
+  for (const [id, neighbor] of [
+    ['nav-prev', DOMAINES[index - 1]],
+    ['nav-next', DOMAINES[index + 1]],
+  ]) {
+    const link = document.getElementById(id);
+    if (!neighbor) {
+      link.remove();
+      continue;
+    }
+    link.href = `index.html?domaine=${encodeURIComponent(neighbor.id)}`;
+    const label = `${neighbor.stand} · ${neighbor.name}`;
+    link.textContent = id === 'nav-prev' ? `← ${label}` : `${label} →`;
+  }
 }
 
 main().catch(showDbError);

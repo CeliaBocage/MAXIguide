@@ -7,6 +7,87 @@
 //   coeur  : stickers « on a adoré les gens », 0 à 5 (1 = excellent, 5 = légendaire)
 //   etoile : stickers « vins excellents », 0 à 5 (même échelle)
 //   commentaire : texte libre, null si vide
+const NOTE_KEYS = ['note_blanc', 'note_rouge', 'note_rose', 'note_whisky', 'note_jus'];
+
+function isEmptyFiche(fiche) {
+  return NOTE_KEYS.every(k => !fiche[k])
+    && !fiche.coeur && !fiche.etoile && !(fiche.commentaire || '').trim();
+}
+
+// Pour comparer les noms de profils : accents, casse et espaces ne comptent pas
+// (évite un « Célia » et un « celia  » qui seraient deux guides différents).
+function normalizeName(name) {
+  return name.trim().replace(/\s+/g, ' ')
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+}
+
+// File de synchronisation : le réseau du parc sera capricieux, alors une fiche
+// qui ne part pas (erreur retryable, voir js/db.js) attend en localStorage et
+// repart automatiquement (retour du réseau, minuterie, chargement de page).
+// L'événement 'maxiguide:sync' tient le header au courant (badge ⏳).
+const SyncQueue = {
+  KEY: 'maxiguide.pendingRatings',
+  flushing: false,
+
+  load() {
+    try { return JSON.parse(localStorage.getItem(this.KEY)) || []; }
+    catch { return []; }
+  },
+
+  save(ops) {
+    localStorage.setItem(this.KEY, JSON.stringify(ops));
+    this.notify();
+  },
+
+  size() {
+    return this.load().length;
+  },
+
+  // Une seule fiche en attente par (utilisateur, domaine) : la dernière gagne
+  push(op) {
+    const ops = this.load().filter(
+      o => !(o.userId === op.userId && o.domaineId === op.domaineId)
+    );
+    ops.push(op);
+    this.save(ops);
+  },
+
+  notify() {
+    document.dispatchEvent(new CustomEvent('maxiguide:sync', {
+      detail: { pending: this.size() },
+    }));
+  },
+
+  // Envoie les fiches en attente dans l'ordre ; s'arrête à la première erreur
+  // passagère (on retentera plus tard). Retourne le nombre restant.
+  async flush() {
+    if (this.flushing) return this.size();
+    this.flushing = true;
+    try {
+      while (this.size()) {
+        const op = this.load()[0];
+        try {
+          await Storage.writeRating(op.userId, op.domaineId, op.fiche);
+        } catch (err) {
+          if (err.retryable) break;
+          // Erreur définitive (SQL…) : inutile de garder la fiche, elle ne partira jamais
+          console.error('Fiche abandonnée par la file de sync :', err);
+        }
+        this.save(this.load().slice(1));
+      }
+    } finally {
+      this.flushing = false;
+      this.notify();
+    }
+    return this.size();
+  },
+};
+
+window.addEventListener('online', () => { SyncQueue.flush(); });
+setInterval(() => { if (SyncQueue.size()) SyncQueue.flush(); }, 15000);
+document.addEventListener('DOMContentLoaded', () => { if (SyncQueue.size()) SyncQueue.flush(); });
+
 const Storage = {
   CURRENT_KEY: 'maxiguide.currentUserId',
 
@@ -23,8 +104,20 @@ const Storage = {
   async getCurrentUser() {
     const id = this.getCurrentUserId();
     if (!id) return null;
-    const rows = await dbExecute('SELECT id, name FROM users WHERE id = ?', [id]);
-    return rows[0] || null;
+    const cacheKey = 'maxiguide.cache.user';
+    let user;
+    try {
+      const rows = await dbExecute('SELECT id, name FROM users WHERE id = ?', [id]);
+      user = rows[0] || null;
+    } catch (err) {
+      // Hors-ligne : on continue avec le profil connu de cet appareil
+      if (!err.retryable) throw err;
+      try { user = JSON.parse(localStorage.getItem(cacheKey)); } catch { user = null; }
+      if (!user || user.id !== id) throw err;
+      return user;
+    }
+    if (user) localStorage.setItem(cacheKey, JSON.stringify(user));
+    return user;
   },
 
   // --- Utilisateurs ---
@@ -39,8 +132,16 @@ const Storage = {
   },
 
   async createUser(name) {
-    const trimmed = name.trim();
+    const trimmed = name.trim().replace(/\s+/g, ' ');
     if (!trimmed) return { error: t('users.errEmpty') };
+
+    // La base refuse déjà les doublons exacts (UNIQUE NOCASE), mais pas
+    // « Celia » vs « Célia » : on compare sans accents pour éviter deux guides
+    // qui sont en fait la même personne.
+    const existing = await this.getUsers();
+    if (existing.some(u => normalizeName(u.name) === normalizeName(trimmed))) {
+      return { error: t('users.errTaken') };
+    }
 
     const id = crypto.randomUUID();
     try {
@@ -56,23 +157,73 @@ const Storage = {
 
   // --- Fiches de notation ---
 
-  // Retourne { domaineId: fiche } pour un utilisateur
+  // Retourne { domaineId: fiche } pour un utilisateur. Hors-ligne, retombe sur
+  // la dernière lecture réussie (cache local) ; dans tous les cas, les fiches
+  // en attente dans la file de sync sont posées par-dessus, comme si elles
+  // étaient déjà en base.
   async getUserRatings(userId) {
-    const rows = await dbExecute(
-      `SELECT domaine_id, note_blanc, note_rouge, note_rose, note_whisky, note_jus,
-              coeur, etoile, commentaire
-       FROM ratings WHERE user_id = ?`,
-      [userId]
-    );
-    return Object.fromEntries(rows.map(r => [r.domaine_id, r]));
+    const cacheKey = `maxiguide.cache.ratings.${userId}`;
+    let map;
+    try {
+      const rows = await dbExecute(
+        `SELECT domaine_id, note_blanc, note_rouge, note_rose, note_whisky, note_jus,
+                coeur, etoile, commentaire
+         FROM ratings WHERE user_id = ?`,
+        [userId]
+      );
+      map = Object.fromEntries(rows.map(r => [r.domaine_id, r]));
+      localStorage.setItem(cacheKey, JSON.stringify(map));
+    } catch (err) {
+      if (!err.retryable) throw err;
+      const cached = localStorage.getItem(cacheKey);
+      if (cached === null) throw err;
+      map = JSON.parse(cached);
+    }
+
+    for (const op of SyncQueue.load()) {
+      if (op.userId !== userId) continue;
+      if (isEmptyFiche(op.fiche)) {
+        delete map[op.domaineId];
+      } else {
+        map[op.domaineId] = {
+          domaine_id: op.domaineId,
+          ...Object.fromEntries(NOTE_KEYS.map(k => [k, op.fiche[k] || null])),
+          coeur: op.fiche.coeur || 0,
+          etoile: op.fiche.etoile || 0,
+          commentaire: (op.fiche.commentaire || '').trim() || null,
+        };
+      }
+    }
+    return map;
   },
 
-  // Enregistre la fiche complète ; la supprime si elle est entièrement vide
+  // Enregistre la fiche ; si le réseau manque, elle rejoint la file de sync et
+  // partira toute seule. Retourne { queued } pour que la page notation puisse
+  // afficher « enregistrée » ou « en attente de réseau ».
   async saveRating(userId, domaineId, fiche) {
+    // Des fiches attendent déjà ? La nôtre passe derrière pour garder l'ordre.
+    if (SyncQueue.size()) {
+      SyncQueue.push({ userId, domaineId, fiche });
+      const remaining = await SyncQueue.flush();
+      return { queued: remaining > 0 };
+    }
+
+    try {
+      await this.writeRating(userId, domaineId, fiche);
+      return { queued: false };
+    } catch (err) {
+      if (!err.retryable) throw err;
+      SyncQueue.push({ userId, domaineId, fiche });
+      return { queued: true };
+    }
+  },
+
+  // Écriture brute en base (utilisée par saveRating et la file de sync) ;
+  // supprime la fiche si elle est entièrement vide
+  async writeRating(userId, domaineId, fiche) {
     const commentaire = (fiche.commentaire || '').trim() || null;
-    const NOTES = ['note_blanc', 'note_rouge', 'note_rose', 'note_whisky', 'note_jus'];
-    const empty = NOTES.every(k => !fiche[k])
-      && !fiche.coeur && !fiche.etoile && !commentaire;
+    const NOTES = NOTE_KEYS;
+    const empty = isEmptyFiche(fiche);
 
     if (empty) {
       await dbExecute(
