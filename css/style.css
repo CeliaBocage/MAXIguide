@@ -438,6 +438,71 @@ section h2 {
   color: #f5b301;
 }
 
+/* Bouteille-jauge : une bouteille couchée qui se remplit selon la note */
+.bottle-gauge {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.bottle-wrap {
+  position: relative;
+  width: 170px;
+}
+
+.bottle-wrap svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.bottle-bg {
+  fill: #f1ede6;
+}
+
+.bottle-liquid {
+  transition: width 0.25s ease;
+}
+
+.bottle-ticks line {
+  stroke: rgba(0, 0, 0, 0.15);
+  stroke-width: 1;
+  stroke-dasharray: 3 3;
+}
+
+.bottle-outline {
+  fill: none;
+  stroke: #4a3b32;
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+}
+
+/* 5 zones cliquables invisibles superposées à la bouteille */
+.bottle-zones {
+  position: absolute;
+  inset: 0;
+  display: flex;
+}
+
+.bottle-zone {
+  flex: 1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+}
+
+.bottle-zone:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+
+.bottle-value {
+  font-weight: 600;
+  min-width: 2.2rem;
+  text-align: right;
+  color: var(--muted, #777);
+}
+
 .sticker-hint {
   margin-top: -0.5rem;
 }

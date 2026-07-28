@@ -55,13 +55,14 @@ const DOMAINES = [
   { id: 'terroir-de-lagrave', stand: '60', name: 'Terroir de Lagrave', type: 'vin' },
 ];
 
-// Ce qu'on peut noter dans chaque fiche, selon le type du domaine
+// Ce qu'on peut noter dans chaque fiche, selon le type du domaine.
+// color : teinte du liquide dans la bouteille-jauge de la page notation.
 const BOISSONS = {
-  blanc:  { key: 'note_blanc',  label: '⚪ Blancs' },
-  rouge:  { key: 'note_rouge',  label: '🔴 Rouges' },
-  rose:   { key: 'note_rose',   label: '🌸 Rosés' },
-  whisky: { key: 'note_whisky', label: '🥃 Whisky' },
-  jus:    { key: 'note_jus',    label: '🍇 Jus de raisin' },
+  blanc:  { key: 'note_blanc',  label: '⚪ Blancs',        color: '#e9c46a' },
+  rouge:  { key: 'note_rouge',  label: '🔴 Rouges',        color: '#7b1e2b' },
+  rose:   { key: 'note_rose',   label: '🌸 Rosés',         color: '#f2a0b2' },
+  whisky: { key: 'note_whisky', label: '🥃 Whisky',        color: '#c67c2e' },
+  jus:    { key: 'note_jus',    label: '🍇 Jus de raisin', color: '#6d3a7c' },
 };
 
 const TYPE_BOISSONS = {
