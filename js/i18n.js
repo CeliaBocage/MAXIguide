@@ -9,7 +9,8 @@ const I18N = (() => {
     fr: {
       // Navigation / header
       'nav.domaines': 'Domaines',
-      'nav.resultats': 'Résultats',
+      'nav.classements': 'Classements',
+      'nav.moyennes': 'Moyennes',
       'nav.switchUser': "Changer d'utilisateur",
       'sync.pending': '{n} fiche(s) en attente de réseau — elles partiront toutes seules dès que possible.',
 
@@ -21,7 +22,7 @@ const I18N = (() => {
       'home.step1': '🧑 Choisissez votre profil (ou créez-le en deux secondes, sans mot de passe).',
       'home.step2': '🍇 Explorez les domaines, en liste ou sur le plan du parc.',
       'home.step3': '⭐ Notez chaque domaine dégusté, de 1 à 5 étoiles.',
-      'home.step4': "📊 Suivez votre score de complétion en continu, et comparez-vous au groupe dans l'onglet Résultats.",
+      'home.step4': '📊 Suivez votre score de complétion en continu, et comparez-vous au groupe dans les onglets Classements et Moyennes.',
       'home.goal': 'Objectif : 100 % de complétion. Bonne dégustation !',
       'home.makeGuide': 'Faire mon guide',
       'home.viewGuides': 'Regarder les guides',
@@ -93,8 +94,8 @@ const I18N = (() => {
       'boisson.whisky': '🥃 Whisky',
       'boisson.jus': '🍇 Jus de raisin',
 
-      // Page résultats
-      'moy.pageTitle': 'MAXIguide — Résultats',
+      // Page classements
+      'res.pageTitle': 'MAXIguide — Classements',
       'res.rankingsTitle': '🏆 Les classements',
       'res.rankingsHint': 'Mis à jour en continu, au fil des dégustations.',
       'res.best': 'Top {boisson}',
@@ -106,6 +107,9 @@ const I18N = (() => {
       'res.noRanking': 'Pas encore de notes — à vos verres !',
       'res.note': '{n} note',
       'res.notes': '{n} notes',
+
+      // Page moyennes
+      'moy.pageTitle': 'MAXIguide — Moyennes',
       'moy.groupTitle': 'Le groupe',
       'moy.avgCompletion': 'Complétion moyenne',
       'moy.coverage': 'Domaines couverts par le groupe',
@@ -155,7 +159,8 @@ const I18N = (() => {
     en: {
       // Navigation / header
       'nav.domaines': 'Wineries',
-      'nav.resultats': 'Results',
+      'nav.classements': 'Rankings',
+      'nav.moyennes': 'Averages',
       'nav.switchUser': 'Switch user',
       'sync.pending': '{n} card(s) waiting for network — they will be sent automatically as soon as possible.',
 
@@ -167,7 +172,7 @@ const I18N = (() => {
       'home.step1': '🧑 Pick your profile (or create it in two seconds, no password needed).',
       'home.step2': '🍇 Browse the wineries, as a list or on the park map.',
       'home.step3': '⭐ Rate every winery you taste, from 1 to 5 stars.',
-      'home.step4': '📊 Track your completion score live, and compare yourself with the group in the Results tab.',
+      'home.step4': '📊 Track your completion score live, and compare yourself with the group in the Rankings and Averages tabs.',
       'home.goal': 'Goal: 100% completion. Happy tasting!',
       'home.makeGuide': 'Build my guide',
       'home.viewGuides': 'Browse the guides',
@@ -239,8 +244,8 @@ const I18N = (() => {
       'boisson.whisky': '🥃 Whisky',
       'boisson.jus': '🍇 Grape juice',
 
-      // Results page
-      'moy.pageTitle': 'MAXIguide — Results',
+      // Rankings page
+      'res.pageTitle': 'MAXIguide — Rankings',
       'res.rankingsTitle': '🏆 The rankings',
       'res.rankingsHint': 'Updated live, as the tastings go on.',
       'res.best': 'Top {boisson}',
@@ -252,6 +257,9 @@ const I18N = (() => {
       'res.noRanking': 'No ratings yet — raise your glasses!',
       'res.note': '{n} rating',
       'res.notes': '{n} ratings',
+
+      // Averages page
+      'moy.pageTitle': 'MAXIguide — Averages',
       'moy.groupTitle': 'The group',
       'moy.avgCompletion': 'Average completion',
       'moy.coverage': 'Wineries covered by the group',

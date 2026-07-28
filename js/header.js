@@ -24,7 +24,8 @@ const Header = {
     nav.className = 'tabs';
     for (const tab of [
       { key: 'domaines', label: t('nav.domaines'), href: BASE + 'pages/domaines/index.html' },
-      { key: 'resultats', label: t('nav.resultats'), href: BASE + 'pages/resultats/index.html' },
+      { key: 'classements', label: t('nav.classements'), href: BASE + 'pages/classements/index.html' },
+      { key: 'moyennes', label: t('nav.moyennes'), href: BASE + 'pages/moyennes/index.html' },
     ]) {
       const link = document.createElement('a');
       link.href = tab.href;

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title data-i18n="res.pageTitle">MAXIguide — Classements</title>
+  <link rel="stylesheet" href="../../css/style.css">
+</head>
+<body>
+  <main class="container">
+    <section>
+      <h2 data-i18n="res.rankingsTitle">🏆 Les classements</h2>
+      <p class="muted" data-i18n="res.rankingsHint">Mis à jour en continu, au fil des dégustations.</p>
+      <div id="rankings" class="rankings">
+        <!-- podiums remplis par classements.js -->
+      </div>
+    </section>
+  </main>
+
+  <script src="../../secrets/config.js"></script>
+  <script src="../../js/i18n.js"></script>
+  <script src="../../js/db.js"></script>
+  <script src="../../js/data/domaines.js"></script>
+  <script src="../../js/storage.js"></script>
+  <script>const BASE = '../../';</script>
+  <script src="../../js/header.js"></script>
+  <script src="classements.js"></script>
+</body>
+</html>

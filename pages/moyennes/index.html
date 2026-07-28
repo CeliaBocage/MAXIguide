@@ -3,19 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title data-i18n="moy.pageTitle">MAXIguide — Résultats</title>
+  <title data-i18n="moy.pageTitle">MAXIguide — Moyennes</title>
   <link rel="stylesheet" href="../../css/style.css">
 </head>
 <body>
   <main class="container">
-    <section>
-      <h2 data-i18n="res.rankingsTitle">🏆 Les classements</h2>
-      <p class="muted" data-i18n="res.rankingsHint">Mis à jour en continu, au fil des dégustations.</p>
-      <div id="rankings" class="rankings">
-        <!-- podiums remplis par resultats.js -->
-      </div>
-    </section>
-
     <section>
       <h2 data-i18n="moy.groupTitle">Le groupe</h2>
       <div class="stats-row">
@@ -40,7 +32,7 @@
       <h2 data-i18n="moy.usersTitle">Détail par participant</h2>
       <p class="muted" data-i18n="moy.usersHint">Dépliez un participant pour voir toutes ses fiches.</p>
       <div id="users-acc">
-        <!-- rempli par resultats.js -->
+        <!-- rempli par moyennes.js -->
       </div>
     </section>
 
@@ -48,7 +40,7 @@
       <h2 data-i18n="moy.domainesTitle">Détail par domaine</h2>
       <p class="muted" data-i18n="moy.domainesHint">Dépliez un domaine pour voir les moyennes et les fiches de chacun.</p>
       <div id="domaines-acc">
-        <!-- rempli par resultats.js -->
+        <!-- rempli par moyennes.js -->
       </div>
     </section>
   </main>
@@ -63,6 +55,6 @@
   <script src="../../js/storage.js"></script>
   <script>const BASE = '../../';</script>
   <script src="../../js/header.js"></script>
-  <script src="resultats.js"></script>
+  <script src="moyennes.js"></script>
 </body>
 </html>
