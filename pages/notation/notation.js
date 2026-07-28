@@ -52,16 +52,22 @@ function makeBottleRow(boisson, getValue, setValue) {
   return row;
 }
 
-// Stickers disponibles : chaque type garde son champ (coeur / etoile) en base.
-const STICKERS = [
-  { key: 'coeur', emoji: '❤️', label: t('notation.lovePeople') },
-  { key: 'etoile', emoji: '⭐', label: t('notation.loveWines') },
-];
+// Stickers disponibles : chaque type garde son champ (coeur / etoile / perso)
+// en base. Le sticker perso porte l'emoji du guide (✨ tant qu'il n'en a pas).
+function makeStickers(user) {
+  return [
+    { key: 'coeur', emoji: '❤️', label: t('notation.lovePeople') },
+    { key: 'etoile', emoji: '⭐', label: t('notation.loveWines') },
+    { key: 'perso', emoji: user.emoji || '✨', label: t('notation.myOwn') },
+  ];
+}
 
 // Section stickers : les stickers posés s'affichent en « chips » (cliquer
 // dessus pour les modifier, ✕ pour les retirer), et un bouton « Ajouter un
 // sticker » ouvre un petit panneau pour choisir lequel et combien.
-function makeStickerSection(getValue, setValue) {
+// Si le guide n'a pas encore de sticker perso, le panneau lui fait d'abord
+// choisir son emoji (takenEmojis : ceux déjà pris par les autres guides).
+function makeStickerSection(user, STICKERS, takenEmojis, getValue, setValue) {
   const section = document.createElement('div');
   section.className = 'sticker-section';
 
@@ -140,7 +146,32 @@ function makeStickerSection(getValue, setValue) {
       }
       picker.append(step1, types);
 
-      if (picking) {
+      // Sticker perso sans emoji choisi : on fait d'abord choisir l'emoji
+      if (picking === 'perso' && !user.emoji) {
+        const step = document.createElement('p');
+        step.className = 'muted picker-step';
+        step.textContent = t('notation.pickEmoji');
+        picker.append(step, makeEmojiPalette({
+          taken: takenEmojis,
+          onPick: async (emoji) => {
+            try {
+              const { error } = await Storage.setUserEmoji(user.id, emoji);
+              if (error) {
+                step.textContent = error;
+                return;
+              }
+            } catch (err) {
+              showDbError(err);
+              return;
+            }
+            user.emoji = emoji;
+            STICKERS.find(s => s.key === 'perso').emoji = emoji;
+            const nameEl = document.querySelector('.user-name');
+            if (nameEl) nameEl.textContent = `${emoji} ${user.name}`;
+            render(); // l'emoji est choisi : place à « Combien ? »
+          },
+        }));
+      } else if (picking) {
         const step2 = document.createElement('p');
         step2.className = 'muted picker-step';
         step2.textContent = t('notation.howMany');
@@ -189,6 +220,7 @@ async function main() {
   const fiche = {
     coeur: existing.coeur || 0,
     etoile: existing.etoile || 0,
+    perso: existing.perso || 0,
   };
 
   // Rangées de notes selon le type du domaine (vin, whisky ou les deux) + jus de raisin :
@@ -201,8 +233,19 @@ async function main() {
     );
   }
 
+  // Pas encore de sticker perso ? On repère ceux des autres guides pour les
+  // griser dans la palette (hors-ligne : palette complète, tant pis).
+  let takenEmojis = new Set();
+  if (!user.emoji) {
+    try {
+      const others = await Storage.getUsers();
+      takenEmojis = new Set(others.filter(u => u.id !== user.id && u.emoji).map(u => u.emoji));
+    } catch { /* réseau capricieux : on laisse tout cliquable */ }
+  }
+
   const stickerRows = document.getElementById('sticker-rows');
   stickerRows.append(makeStickerSection(
+    user, makeStickers(user), takenEmojis,
     key => fiche[key] || 0,
     (key, v) => { fiche[key] = v; },
   ));

@@ -25,6 +25,11 @@
       <h2 data-i18n="users.create">Créer un profil</h2>
       <form id="create-user-form" class="create-form">
         <input type="text" id="new-user-name" data-i18n-placeholder="users.placeholder" placeholder="Votre prénom ou pseudo" required maxlength="30" autocomplete="off">
+        <div class="emoji-field">
+          <p class="emoji-field-label" data-i18n="users.stickerLabel">Ton sticker perso</p>
+          <p class="muted emoji-field-hint" data-i18n="users.stickerHint">C'est ton emoji à toi : tu pourras le coller sur tes stands préférés. (Facultatif — tu pourras le choisir plus tard.)</p>
+          <div id="emoji-palette-slot"></div>
+        </div>
         <button type="submit" class="btn btn-primary" data-i18n="users.createBtn">Créer et entrer</button>
       </form>
       <p id="form-error" class="error" hidden></p>
@@ -39,6 +44,7 @@
   <script src="../../secrets/config.js"></script>
   <script src="../../js/i18n.js"></script>
   <script src="../../js/db.js"></script>
+  <script src="../../js/emoji.js"></script>
   <script src="../../js/storage.js"></script>
   <script src="users.js"></script>
 </body>

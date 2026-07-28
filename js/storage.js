@@ -6,12 +6,15 @@
 //   note_blanc / note_rouge / note_rose : 1 à 5, null si pas goûté
 //   coeur  : stickers « on a adoré les gens », 0 à 5 (1 = excellent, 5 = légendaire)
 //   etoile : stickers « vins excellents », 0 à 5 (même échelle)
+//   perso  : stickers persos du guide (son emoji à lui), 0 à 5 (même échelle)
 //   commentaire : texte libre, null si vide
 const NOTE_KEYS = ['note_blanc', 'note_rouge', 'note_rose', 'note_whisky', 'note_jus'];
+const STICKER_KEYS = ['coeur', 'etoile', 'perso'];
 
 function isEmptyFiche(fiche) {
   return NOTE_KEYS.every(k => !fiche[k])
-    && !fiche.coeur && !fiche.etoile && !(fiche.commentaire || '').trim();
+    && STICKER_KEYS.every(k => !fiche[k])
+    && !(fiche.commentaire || '').trim();
 }
 
 // Pour comparer les noms de profils : accents, casse et espaces ne comptent pas
@@ -107,7 +110,7 @@ const Storage = {
     const cacheKey = 'maxiguide.cache.user';
     let user;
     try {
-      const rows = await dbExecute('SELECT id, name FROM users WHERE id = ?', [id]);
+      const rows = await dbExecute('SELECT id, name, emoji FROM users WHERE id = ?', [id]);
       user = rows[0] || null;
     } catch (err) {
       // Hors-ligne : on continue avec le profil connu de cet appareil
@@ -123,17 +126,18 @@ const Storage = {
   // --- Utilisateurs ---
 
   async getUsers() {
-    return dbExecute('SELECT id, name FROM users ORDER BY name COLLATE NOCASE');
+    return dbExecute('SELECT id, name, emoji FROM users ORDER BY name COLLATE NOCASE');
   },
 
   async getUser(id) {
-    const rows = await dbExecute('SELECT id, name FROM users WHERE id = ?', [id]);
+    const rows = await dbExecute('SELECT id, name, emoji FROM users WHERE id = ?', [id]);
     return rows[0] || null;
   },
 
-  async createUser(name) {
+  async createUser(name, emoji = null) {
     const trimmed = name.trim().replace(/\s+/g, ' ');
     if (!trimmed) return { error: t('users.errEmpty') };
+    emoji = (emoji || '').trim() || null;
 
     // La base refuse déjà les doublons exacts (UNIQUE NOCASE), mais pas
     // « Celia » vs « Célia » : on compare sans accents pour éviter deux guides
@@ -142,17 +146,43 @@ const Storage = {
     if (existing.some(u => normalizeName(u.name) === normalizeName(trimmed))) {
       return { error: t('users.errTaken') };
     }
+    // Un sticker perso par personne : deux guides avec le même emoji, on ne
+    // saurait plus qui a stické quoi.
+    if (emoji && existing.some(u => u.emoji === emoji)) {
+      return { error: t('users.errEmojiTaken') };
+    }
 
     const id = crypto.randomUUID();
     try {
-      await dbExecute('INSERT INTO users (id, name) VALUES (?, ?)', [id, trimmed]);
+      await dbExecute('INSERT INTO users (id, name, emoji) VALUES (?, ?, ?)', [id, trimmed, emoji]);
     } catch (err) {
       if (/UNIQUE/i.test(err.message)) {
         return { error: t('users.errTaken') };
       }
       throw err;
     }
-    return { user: { id, name: trimmed } };
+    return { user: { id, name: trimmed, emoji } };
+  },
+
+  // Choisit (ou change) le sticker perso d'un guide
+  async setUserEmoji(id, emoji) {
+    emoji = (emoji || '').trim() || null;
+    if (emoji) {
+      const existing = await this.getUsers();
+      if (existing.some(u => u.id !== id && u.emoji === emoji)) {
+        return { error: t('users.errEmojiTaken') };
+      }
+    }
+    await dbExecute('UPDATE users SET emoji = ? WHERE id = ?', [emoji, id]);
+    // Le profil actif de cet appareil est en cache : on le garde à jour
+    try {
+      const cached = JSON.parse(localStorage.getItem('maxiguide.cache.user'));
+      if (cached && cached.id === id) {
+        cached.emoji = emoji;
+        localStorage.setItem('maxiguide.cache.user', JSON.stringify(cached));
+      }
+    } catch { /* cache illisible : tant pis */ }
+    return {};
   },
 
   // --- Fiches de notation ---
@@ -167,7 +197,7 @@ const Storage = {
     try {
       const rows = await dbExecute(
         `SELECT domaine_id, note_blanc, note_rouge, note_rose, note_whisky, note_jus,
-                coeur, etoile, commentaire
+                coeur, etoile, perso, commentaire
          FROM ratings WHERE user_id = ?`,
         [userId]
       );
@@ -188,8 +218,7 @@ const Storage = {
         map[op.domaineId] = {
           domaine_id: op.domaineId,
           ...Object.fromEntries(NOTE_KEYS.map(k => [k, op.fiche[k] || null])),
-          coeur: op.fiche.coeur || 0,
-          etoile: op.fiche.etoile || 0,
+          ...Object.fromEntries(STICKER_KEYS.map(k => [k, op.fiche[k] || 0])),
           commentaire: (op.fiche.commentaire || '').trim() || null,
         };
       }
@@ -235,8 +264,8 @@ const Storage = {
 
     await dbExecute(
       `INSERT INTO ratings (user_id, domaine_id, note_blanc, note_rouge, note_rose,
-                            note_whisky, note_jus, coeur, etoile, commentaire)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            note_whisky, note_jus, coeur, etoile, perso, commentaire)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT (user_id, domaine_id) DO UPDATE SET
          note_blanc = excluded.note_blanc,
          note_rouge = excluded.note_rouge,
@@ -245,12 +274,13 @@ const Storage = {
          note_jus = excluded.note_jus,
          coeur = excluded.coeur,
          etoile = excluded.etoile,
+         perso = excluded.perso,
          commentaire = excluded.commentaire,
          updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')`,
       [
         userId, domaineId,
         ...NOTES.map(k => fiche[k] || null),
-        fiche.coeur || 0, fiche.etoile || 0,
+        ...STICKER_KEYS.map(k => fiche[k] || 0),
         commentaire,
       ]
     );
@@ -261,9 +291,9 @@ const Storage = {
   // Toutes les fiches de tout le monde, avec le nom du participant
   async getAllRatings() {
     return dbExecute(
-      `SELECT r.user_id, u.name AS user_name, r.domaine_id,
+      `SELECT r.user_id, u.name AS user_name, u.emoji AS user_emoji, r.domaine_id,
               r.note_blanc, r.note_rouge, r.note_rose, r.note_whisky, r.note_jus,
-              r.coeur, r.etoile, r.commentaire
+              r.coeur, r.etoile, r.perso, r.commentaire
        FROM ratings r
        JOIN users u ON u.id = r.user_id
        ORDER BY u.name COLLATE NOCASE`

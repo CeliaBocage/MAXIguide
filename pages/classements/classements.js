@@ -102,8 +102,12 @@ function renderRankings(users, byUser, byDomaine) {
     overall.map(x => avgEntry(x.d.name, x.s))
   ));
 
-  // Les plus gentils (total de ❤️) et les plus étoilés (total de ⭐)
-  for (const [key, titleKey, emoji] of [['coeur', 'res.nicest', '❤️'], ['etoile', 'res.starriest', '⭐']]) {
+  // Les plus gentils (❤️), les plus étoilés (⭐) et les plus stickés (persos)
+  for (const [key, titleKey, emoji] of [
+    ['coeur', 'res.nicest', '❤️'],
+    ['etoile', 'res.starriest', '⭐'],
+    ['perso', 'res.mostStickered', '✨'],
+  ]) {
     const totals = DOMAINES
       .map(d => ({ d, total: byDomaine.get(d.id).reduce((a, r) => a + (r[key] || 0), 0) }))
       .filter(x => x.total > 0)
@@ -122,7 +126,7 @@ function renderRankings(users, byUser, byDomaine) {
   container.appendChild(podium(
     t('res.completest'),
     completest.map(x => ({
-      name: x.u.name,
+      name: x.u.emoji ? `${x.u.emoji} ${x.u.name}` : x.u.name,
       value: `${x.count}/${DOMAINES.length} · ${pct(x.count / DOMAINES.length)}`,
     }))
   ));

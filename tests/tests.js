@@ -277,13 +277,66 @@ test('createUser refuse un nom vide', async () => {
 });
 
 // =====================================================================
+// storage.js — stickers persos (un emoji par guide)
+// =====================================================================
+
+test('createUser enregistre le sticker perso choisi', async () => {
+  clearAppStorage();
+  mockFetchOK([]);
+  const { user, error } = await Storage.createUser('Jean', '🦄');
+  assert(!error, `pas d'erreur attendue (reçu : ${error})`);
+  assertEqual(user.emoji, '🦄');
+  assert(sentSql(1).startsWith('INSERT INTO users'), "l'insertion doit partir en base");
+  assert(sentArgs(1).includes('🦄'), "l'emoji doit être envoyé en base");
+});
+
+test('createUser refuse un sticker déjà pris par un autre guide', async () => {
+  clearAppStorage();
+  mockFetchOK([{ id: 'u1', name: 'Célia', emoji: '🦄' }]);
+  const { error } = await Storage.createUser('Jean', '🦄');
+  assert(error, 'un emoji déjà pris doit être refusé');
+});
+
+test('setUserEmoji refuse l’emoji d’un autre, accepte le sien', async () => {
+  clearAppStorage();
+  mockFetchOK([{ id: 'u1', name: 'Célia', emoji: '🦄' }]);
+  const dup = await Storage.setUserEmoji('u2', '🦄');
+  assert(dup.error, "l'emoji d'un autre guide doit être refusé");
+  const ok = await Storage.setUserEmoji('u1', '🦄'); // re-choisir le sien : ok
+  assert(!ok.error, 'reprendre son propre emoji ne doit pas être une erreur');
+});
+
+test('normalizeCustomEmoji accepte les emojis du clavier, refuse le reste', () => {
+  assertEqual(normalizeCustomEmoji(' 🤖 '), '🤖');
+  assertEqual(normalizeCustomEmoji('❤️'), '❤️', 'emoji avec sélecteur de variante');
+  assertEqual(normalizeCustomEmoji('👩‍🚀'), '👩‍🚀', 'emoji composé (ZWJ)');
+  assertEqual(normalizeCustomEmoji('🤖🐸'), '🤖', 'seul le premier emoji est gardé');
+  assertEqual(normalizeCustomEmoji('abc'), null, 'des lettres ne sont pas un sticker');
+  assertEqual(normalizeCustomEmoji('3'), null, 'un chiffre non plus');
+  assertEqual(normalizeCustomEmoji('   '), null);
+  assertEqual(normalizeCustomEmoji(''), null);
+});
+
+test('setUserEmoji met à jour le profil en cache sur cet appareil', async () => {
+  clearAppStorage();
+  Storage.setCurrentUser('u1');
+  mockFetchOK([{ id: 'u1', name: 'Célia', emoji: null }]);
+  await Storage.getCurrentUser(); // remplit le cache
+  await Storage.setUserEmoji('u1', '🐙');
+  mockFetchOffline();
+  const user = await Storage.getCurrentUser(); // relu depuis le cache
+  assertEqual(user.emoji, '🐙', 'le cache local doit connaître le nouvel emoji');
+});
+
+// =====================================================================
 // storage.js — divers
 // =====================================================================
 
 test('isEmptyFiche : vide si aucune note, aucun sticker, aucun mot', () => {
-  assert(isEmptyFiche({ coeur: 0, etoile: 0, commentaire: ' ' }));
+  assert(isEmptyFiche({ coeur: 0, etoile: 0, perso: 0, commentaire: ' ' }));
   assert(!isEmptyFiche({ note_rouge: 3, coeur: 0, etoile: 0 }));
   assert(!isEmptyFiche({ coeur: 1, etoile: 0 }));
+  assert(!isEmptyFiche({ coeur: 0, etoile: 0, perso: 2 }), 'un sticker perso suffit à garder la fiche');
   assert(!isEmptyFiche({ coeur: 0, etoile: 0, commentaire: 'super' }));
 });
 

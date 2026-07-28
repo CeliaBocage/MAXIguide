@@ -48,7 +48,9 @@
         const resume = document.createElement('a');
         resume.href = 'pages/domaines/index.html';
         resume.className = 'btn btn-secondary';
-        resume.textContent = t('home.resumeAs', { name: current.name });
+        resume.textContent = t('home.resumeAs', {
+          name: current.emoji ? `${current.emoji} ${current.name}` : current.name,
+        });
         actions.appendChild(resume);
       } catch {
         // Base pas encore configurée ou injoignable : l'accueil reste utilisable

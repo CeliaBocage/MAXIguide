@@ -139,6 +139,120 @@ section h2 {
   border-color: transparent;
 }
 
+/* Carte de guide + petit bouton pour changer son sticker perso */
+.user-item {
+  display: flex;
+  align-items: stretch;
+  gap: 0.35rem;
+}
+
+.user-emoji-edit {
+  border: 2px dashed #e0d9cf;
+  border-radius: var(--radius);
+  background: transparent;
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0 0.5rem;
+}
+
+.user-emoji-edit:hover {
+  border-color: var(--primary);
+}
+
+/* Palette dépliée sous une carte : prend toute la largeur de la liste */
+.user-emoji-editor {
+  flex-basis: 100%;
+}
+
+/* Palette des stickers persos (création de profil, notation, liste) */
+.emoji-palette-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.emoji-palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+/* Champ libre : n'importe quel emoji tapé avec le clavier du téléphone */
+.emoji-custom {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.emoji-custom-hint {
+  font-size: 0.9rem;
+}
+
+.emoji-custom-input {
+  width: 3.2rem;
+  height: 2.6rem;
+  border: 2px dashed #e0d9cf;
+  border-radius: var(--radius);
+  background: #fff;
+  font-size: 1.3rem;
+  text-align: center;
+  padding: 0;
+}
+
+.emoji-custom-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  border-style: solid;
+}
+
+.emoji-custom-error {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.emoji-option {
+  width: 2.6rem;
+  height: 2.6rem;
+  border: 2px solid #e0d9cf;
+  border-radius: var(--radius);
+  background: #fff;
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 0;
+}
+
+.emoji-option:hover:not(:disabled) {
+  border-color: var(--primary);
+}
+
+.emoji-option.active {
+  border-color: var(--primary);
+  background: rgba(230, 57, 70, 0.08);
+}
+
+.emoji-option:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* Bloc « Ton sticker perso » dans le formulaire de création */
+.emoji-field {
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.emoji-field-label {
+  margin: 0;
+  font-weight: 600;
+}
+
+.emoji-field-hint {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
 .muted {
   color: var(--muted);
 }

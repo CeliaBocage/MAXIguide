@@ -26,12 +26,22 @@ function noteCell(boisson, value) {
   return span;
 }
 
+let usersById = new Map(); // pour retrouver le sticker perso de chaque guide
+
+// Tous les stickers d'une fiche : ❤️⭐ + le sticker perso du guide
+function stickerString(fiche, persoEmoji) {
+  return '❤️'.repeat(fiche.coeur || 0)
+    + '⭐'.repeat(fiche.etoile || 0)
+    + (persoEmoji || '✨').repeat(fiche.perso || 0);
+}
+
 async function renderGuide(userId) {
   if (!userId) {
     content.hidden = true;
     return;
   }
 
+  const persoEmoji = usersById.get(userId)?.emoji;
   const ratings = await Storage.getUserRatings(userId);
   const rated = DOMAINES.filter(d => ratings[d.id]);
 
@@ -39,13 +49,12 @@ async function renderGuide(userId) {
   emptyEl.hidden = rated.length > 0;
   content.hidden = false;
 
-  // Son plan : ses stickers ❤️/⭐ posés sur les stands
+  // Son plan : ses stickers ❤️/⭐/perso posés sur les stands
   renderPlan(document.getElementById('plan-container'), {
     decorate: (domaine) => {
       const fiche = ratings[domaine.id];
       if (!fiche) return {};
-      const badge = '❤️'.repeat(fiche.coeur || 0) + '⭐'.repeat(fiche.etoile || 0);
-      return { done: true, badge };
+      return { done: true, badge: stickerString(fiche, persoEmoji) };
     },
   });
 
@@ -63,7 +72,7 @@ async function renderGuide(userId) {
 
     const stickers = document.createElement('span');
     stickers.className = 'guide-stickers';
-    stickers.textContent = '❤️'.repeat(fiche.coeur || 0) + '⭐'.repeat(fiche.etoile || 0);
+    stickers.textContent = stickerString(fiche, persoEmoji);
 
     title.append(name, stickers);
     li.appendChild(title);
@@ -88,10 +97,11 @@ async function renderGuide(userId) {
 
 async function main() {
   const users = await Storage.getUsers();
+  usersById = new Map(users.map(u => [u.id, u]));
   for (const user of users) {
     const option = document.createElement('option');
     option.value = user.id;
-    option.textContent = user.name;
+    option.textContent = user.emoji ? `${user.emoji} ${user.name}` : user.name;
     select.appendChild(option);
   }
 

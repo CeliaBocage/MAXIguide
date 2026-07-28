@@ -39,7 +39,9 @@ const Header = {
 
     const name = document.createElement('span');
     name.className = 'user-name';
-    name.textContent = this.user.name;
+    name.textContent = this.user.emoji
+      ? `${this.user.emoji} ${this.user.name}`
+      : this.user.name;
 
     const score = document.createElement('span');
     score.className = 'completion-badge';

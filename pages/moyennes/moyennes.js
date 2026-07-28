@@ -3,7 +3,8 @@
 // (Les podiums, eux, vivent dans pages/classements.)
 const pct = (ratio) => `${Math.round(ratio * 100)} %`;
 
-// Résumé compact d'une fiche : ⚪4 🔴3 ❤️❤️ ⭐ …
+// Résumé compact d'une fiche : ⚪4 🔴3 ❤️❤️ ⭐ 🦄🦄 …
+// (le sticker perso s'affiche avec l'emoji du guide, u.emoji de getAllRatings)
 function ficheParts(fiche) {
   const parts = [];
   if (fiche.note_blanc) parts.push(`⚪${fiche.note_blanc}`);
@@ -13,6 +14,7 @@ function ficheParts(fiche) {
   if (fiche.note_jus) parts.push(`🍇${fiche.note_jus}`);
   if (fiche.coeur) parts.push('❤️'.repeat(fiche.coeur));
   if (fiche.etoile) parts.push('⭐'.repeat(fiche.etoile));
+  if (fiche.perso) parts.push((fiche.user_emoji || '✨').repeat(fiche.perso));
   return parts.join(' ');
 }
 
@@ -103,7 +105,8 @@ async function main() {
       const rows = byDomaine.get(domaine.id);
       if (!rows.length) return {};
       const badge = '❤️'.repeat(Math.round(avgOf(rows, 'coeur')))
-        + '⭐'.repeat(Math.round(avgOf(rows, 'etoile')));
+        + '⭐'.repeat(Math.round(avgOf(rows, 'etoile')))
+        + '✨'.repeat(Math.round(avgOf(rows, 'perso')));
       return { done: true, badge };
     },
   });
@@ -114,7 +117,7 @@ async function main() {
     const rows = byUser.get(u.id);
     const completion = DOMAINES.length ? pct(rows.length / DOMAINES.length) : '—';
     const { details, body } = accordion(
-      u.name,
+      u.emoji ? `${u.emoji} ${u.name}` : u.name,
       `${t('moy.ratedCount', { rated: rows.length, total: DOMAINES.length })} · ${completion}`
     );
 
@@ -133,8 +136,10 @@ async function main() {
   const domainesAcc = document.getElementById('domaines-acc');
   for (const domaine of DOMAINES) {
     const rows = byDomaine.get(domaine.id);
+    const persoAvg = rows.length ? avgOf(rows, 'perso') : 0;
     const meta = rows.length
       ? `${countCards(rows.length)} · ❤️ ${avgOf(rows, 'coeur').toFixed(1)} ⭐ ${avgOf(rows, 'etoile').toFixed(1)}`
+        + (persoAvg ? ` ✨ ${persoAvg.toFixed(1)}` : '')
       : t('moy.noCards');
     const { details, body } = accordion(`${domaine.stand} · ${domaine.name}`, meta);
 
@@ -171,7 +176,11 @@ async function main() {
       avgLine.append(label, values);
       body.appendChild(avgLine);
 
-      for (const r of rows) body.appendChild(ficheLine(r.user_name, r));
+      for (const r of rows) {
+        body.appendChild(ficheLine(
+          r.user_emoji ? `${r.user_emoji} ${r.user_name}` : r.user_name, r
+        ));
+      }
     }
     domainesAcc.appendChild(details);
   }

@@ -79,6 +79,7 @@ async function main() {
       if (fiche.note_jus) parts.push(`🍇${fiche.note_jus}`);
       if (fiche.coeur) parts.push('❤️'.repeat(fiche.coeur));
       if (fiche.etoile) parts.push('⭐'.repeat(fiche.etoile));
+      if (fiche.perso) parts.push((user.emoji || '✨').repeat(fiche.perso));
       if (fiche.commentaire) parts.push('💬');
       status.textContent = parts.join(' ') || t('domaines.emptyCard');
       status.classList.add('rated');
