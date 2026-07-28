@@ -1,0 +1,318 @@
+// Internationalisation FR/EN — la langue choisie est mémorisée sur l'appareil.
+// - Les textes statiques du HTML portent data-i18n / data-i18n-placeholder (clé du dictionnaire).
+// - Les textes construits en JS passent par t('clé', { variables }).
+// À charger AVANT tous les autres scripts (db.js, data/domaines.js, etc.).
+const I18N = (() => {
+  const KEY = 'maxiguide.lang';
+
+  const STRINGS = {
+    fr: {
+      // Navigation / header
+      'nav.domaines': 'Domaines',
+      'nav.moyennes': 'Moyennes',
+      'nav.switchUser': "Changer d'utilisateur",
+
+      // Accueil
+      'home.pageTitle': 'MAXIguide — Accueil',
+      'home.tagline': 'Le jeu de dégustation de la fête des vins de Gaillac',
+      'home.how': 'Comment ça marche ?',
+      'home.intro': 'Bienvenue à la fête des vins de Gaillac ! Le principe est simple : parcourez le parc, dégustez, et notez chaque domaine que vous visitez.',
+      'home.step1': '🧑 Choisissez votre profil (ou créez-le en deux secondes, sans mot de passe).',
+      'home.step2': '🍇 Explorez les domaines, en liste ou sur le plan du parc.',
+      'home.step3': '⭐ Notez chaque domaine dégusté, de 1 à 5 étoiles.',
+      'home.step4': "📊 Suivez votre score de complétion en continu, et comparez-vous au groupe dans l'onglet Moyennes.",
+      'home.goal': 'Objectif : 100 % de complétion. Bonne dégustation !',
+      'home.makeGuide': 'Faire mon guide',
+      'home.viewGuides': 'Regarder les guides',
+      'home.resumeAs': 'Reprendre en tant que {name}',
+
+      // Choix / création d'utilisateur
+      'users.pageTitle': 'MAXIguide — Qui êtes-vous ?',
+      'users.heading': 'Qui êtes-vous ?',
+      'users.tagline': "Choisissez votre profil, ou créez-le si vous n'êtes pas dans la liste.",
+      'users.participants': 'Participants',
+      'users.none': 'Personne pour l’instant — créez le premier profil !',
+      'users.create': 'Créer un profil',
+      'users.placeholder': 'Votre prénom ou pseudo',
+      'users.createBtn': 'Créer et entrer',
+      'users.watchOthers': 'Juste regarder les guides des autres →',
+      'users.errEmpty': 'Le nom ne peut pas être vide.',
+      'users.errTaken': 'Ce nom est déjà pris — choisissez-le dans la liste !',
+      'common.backHome': "← Retour à l'accueil",
+
+      // Guides des invités
+      'guide.pageTitle': 'MAXIguide — Guides des invités',
+      'guide.heading': 'Les guides des invités',
+      'guide.tagline': 'Choisissez un invité pour feuilleter son guide.',
+      'guide.selectLabel': 'Le guide de…',
+      'guide.selectPlaceholder': '— Choisir un invité —',
+      'guide.planTitle': 'Son plan du parc',
+      'guide.planHint': 'Ses ❤️ et ⭐ sont posés sur les stands, comme des stickers.',
+      'guide.cards': 'Ses fiches',
+      'guide.empty': "Cet invité n'a encore rien noté.",
+
+      // Page domaines
+      'domaines.pageTitle': 'MAXIguide — Domaines',
+      'domaines.viewList': 'Liste',
+      'domaines.viewPlan': 'Plan du parc',
+      'domaines.heading': 'Les domaines',
+      'domaines.planHeading': 'Plan du parc',
+      'domaines.planHint': 'Touchez un stand pour le noter — les stands verts sont déjà dans votre guide.',
+      'domaines.toTaste': 'À déguster',
+      'domaines.emptyCard': 'Fiche vide',
+
+      // Page notation
+      'notation.pageTitle': 'MAXIguide — Notation',
+      'notation.sub': 'Stand {stand} — notez ce que vous avez dégusté (re-cliquez sur la même valeur pour effacer).',
+      'notation.drinks': 'Les vins',
+      'notation.stickers': 'Les stickers',
+      'notation.stickerHint': "1 c'est excellent, 2 c'est exceptionnel… 5 c'est légendaire !",
+      'notation.comment': 'Un petit mot ?',
+      'notation.commentPlaceholder': 'Votre note écrite (facultatif) : une anecdote, un vin à retenir…',
+      'notation.save': 'Enregistrer',
+      'notation.saved': '✔ Fiche enregistrée !',
+      'notation.back': '← Retour aux domaines',
+      'notation.lovePeople': 'On a adoré les gens',
+      'notation.loveWines': 'Les vins étaient excellents',
+      'notation.ariaValue': '{label} : {value} sur 5',
+      'notation.addSticker': '➕ Ajouter un sticker',
+      'notation.whichSticker': 'Quel sticker ?',
+      'notation.howMany': 'Combien ?',
+      'notation.chipEdit': '{label} : {count} — modifier',
+      'notation.chipRemove': 'Retirer le sticker « {label} »',
+
+      // Boissons
+      'boisson.blanc': '⚪ Blancs',
+      'boisson.rouge': '🔴 Rouges',
+      'boisson.rose': '🌸 Rosés',
+      'boisson.whisky': '🥃 Whisky',
+      'boisson.jus': '🍇 Jus de raisin',
+
+      // Page moyennes
+      'moy.pageTitle': 'MAXIguide — Moyennes',
+      'moy.groupTitle': 'Le groupe',
+      'moy.avgCompletion': 'Complétion moyenne',
+      'moy.coverage': 'Domaines couverts par le groupe',
+      'moy.planTitle': 'Le plan moyen du groupe',
+      'moy.planHint': 'Les stickers moyens du groupe sont posés sur chaque stand — les stands verts ont été notés au moins une fois.',
+      'moy.usersTitle': 'Détail par participant',
+      'moy.usersHint': 'Dépliez un participant pour voir toutes ses fiches.',
+      'moy.domainesTitle': 'Détail par domaine',
+      'moy.domainesHint': 'Dépliez un domaine pour voir les moyennes et les fiches de chacun.',
+      'moy.ratedCount': '{rated}/{total} notés',
+      'moy.noRatingsUser': 'Aucune fiche pour l’instant.',
+      'moy.noRatingsDomaine': "Personne n'a encore noté ce domaine.",
+      'moy.noCards': 'aucune fiche',
+      'moy.card': '{n} fiche',
+      'moy.cards': '{n} fiches',
+      'moy.averages': 'Moyennes',
+
+      // Plan du parc
+      'plan.aria': 'Plan du parc de la fête des vins',
+      'plan.protection': 'PROTECTION CIVILE',
+      'plan.garderie': '🧸\nGARDERIE',
+      'plan.chateau': 'CHÂTEAU',
+      'plan.yoga': 'VINS\n&\nYOGA',
+      'plan.foodtrucks': 'FOOD TRUCKS',
+      'plan.bar': 'BAR',
+      'plan.scene': 'SCÈNE',
+      'plan.vip': 'ESPACE VIP',
+      'plan.village': '🍷 VILLAGE VIGNERONS',
+      'plan.resto': '🍴 ESPACE RESTAURATION',
+      'plan.info': 'ℹ️ POINT INFO',
+      'plan.entree': '➜ ENTRÉE GÉNÉRALE',
+      'plan.sortie': 'SORTIE ➜',
+      'plan.chargement': 'AIRE DE CHARGEMENT',
+      'plan.legendTaste': 'Stand à déguster',
+      'plan.legendRated': 'Stand noté ✔',
+      'plan.legendAnim': 'Animations',
+      'plan.legendFood': 'Village gourmand',
+      'plan.standTitle': 'Stand {stand} — {name}',
+
+      // Erreurs base de données
+      'db.notConfigured': "Base non configurée : copiez secrets/config.example.js en secrets/config.js et remplissez l'URL et le token Turso.",
+      'db.http': 'Erreur Turso : HTTP {status}',
+      'db.sql': 'Erreur SQL : {message}',
+    },
+
+    en: {
+      // Navigation / header
+      'nav.domaines': 'Wineries',
+      'nav.moyennes': 'Averages',
+      'nav.switchUser': 'Switch user',
+
+      // Home
+      'home.pageTitle': 'MAXIguide — Home',
+      'home.tagline': 'The tasting game of the Gaillac wine festival',
+      'home.how': 'How does it work?',
+      'home.intro': 'Welcome to the Gaillac wine festival! The idea is simple: wander around the park, taste, and rate every winery you visit.',
+      'home.step1': '🧑 Pick your profile (or create it in two seconds, no password needed).',
+      'home.step2': '🍇 Browse the wineries, as a list or on the park map.',
+      'home.step3': '⭐ Rate every winery you taste, from 1 to 5 stars.',
+      'home.step4': '📊 Track your completion score live, and compare yourself with the group in the Averages tab.',
+      'home.goal': 'Goal: 100% completion. Happy tasting!',
+      'home.makeGuide': 'Build my guide',
+      'home.viewGuides': 'Browse the guides',
+      'home.resumeAs': 'Continue as {name}',
+
+      // User selection / creation
+      'users.pageTitle': 'MAXIguide — Who are you?',
+      'users.heading': 'Who are you?',
+      'users.tagline': "Pick your profile, or create it if you're not on the list.",
+      'users.participants': 'Participants',
+      'users.none': 'Nobody yet — create the first profile!',
+      'users.create': 'Create a profile',
+      'users.placeholder': 'Your first name or nickname',
+      'users.createBtn': 'Create and enter',
+      'users.watchOthers': "Just browse the others' guides →",
+      'users.errEmpty': 'The name cannot be empty.',
+      'users.errTaken': 'This name is already taken — pick it from the list!',
+      'common.backHome': '← Back to home',
+
+      // Guest guides
+      'guide.pageTitle': 'MAXIguide — Guest guides',
+      'guide.heading': "The guests' guides",
+      'guide.tagline': 'Pick a guest to flip through their guide.',
+      'guide.selectLabel': 'The guide of…',
+      'guide.selectPlaceholder': '— Pick a guest —',
+      'guide.planTitle': 'Their park map',
+      'guide.planHint': 'Their ❤️ and ⭐ are placed on the stands, like stickers.',
+      'guide.cards': 'Their tasting cards',
+      'guide.empty': "This guest hasn't rated anything yet.",
+
+      // Wineries page
+      'domaines.pageTitle': 'MAXIguide — Wineries',
+      'domaines.viewList': 'List',
+      'domaines.viewPlan': 'Park map',
+      'domaines.heading': 'The wineries',
+      'domaines.planHeading': 'Park map',
+      'domaines.planHint': 'Tap a stand to rate it — green stands are already in your guide.',
+      'domaines.toTaste': 'To taste',
+      'domaines.emptyCard': 'Empty card',
+
+      // Rating page
+      'notation.pageTitle': 'MAXIguide — Rating',
+      'notation.sub': 'Stand {stand} — rate what you tasted (click the same value again to clear).',
+      'notation.drinks': 'The drinks',
+      'notation.stickers': 'The stickers',
+      'notation.stickerHint': '1 is excellent, 2 is exceptional… 5 is legendary!',
+      'notation.comment': 'A little note?',
+      'notation.commentPlaceholder': 'Your written note (optional): a story, a wine to remember…',
+      'notation.save': 'Save',
+      'notation.saved': '✔ Card saved!',
+      'notation.back': '← Back to the wineries',
+      'notation.lovePeople': 'We loved the people',
+      'notation.loveWines': 'The wines were excellent',
+      'notation.ariaValue': '{label}: {value} out of 5',
+      'notation.addSticker': '➕ Add a sticker',
+      'notation.whichSticker': 'Which sticker?',
+      'notation.howMany': 'How many?',
+      'notation.chipEdit': '{label}: {count} — edit',
+      'notation.chipRemove': 'Remove the "{label}" sticker',
+
+      // Drinks
+      'boisson.blanc': '⚪ Whites',
+      'boisson.rouge': '🔴 Reds',
+      'boisson.rose': '🌸 Rosés',
+      'boisson.whisky': '🥃 Whisky',
+      'boisson.jus': '🍇 Grape juice',
+
+      // Averages page
+      'moy.pageTitle': 'MAXIguide — Averages',
+      'moy.groupTitle': 'The group',
+      'moy.avgCompletion': 'Average completion',
+      'moy.coverage': 'Wineries covered by the group',
+      'moy.planTitle': "The group's average map",
+      'moy.planHint': "The group's average stickers are placed on each stand — green stands have been rated at least once.",
+      'moy.usersTitle': 'Breakdown by participant',
+      'moy.usersHint': 'Expand a participant to see all their cards.',
+      'moy.domainesTitle': 'Breakdown by winery',
+      'moy.domainesHint': "Expand a winery to see the averages and everyone's cards.",
+      'moy.ratedCount': '{rated}/{total} rated',
+      'moy.noRatingsUser': 'No cards yet.',
+      'moy.noRatingsDomaine': 'Nobody has rated this winery yet.',
+      'moy.noCards': 'no cards',
+      'moy.card': '{n} card',
+      'moy.cards': '{n} cards',
+      'moy.averages': 'Averages',
+
+      // Park map
+      'plan.aria': 'Map of the wine festival park',
+      'plan.protection': 'FIRST AID',
+      'plan.garderie': '🧸\nCHILDCARE',
+      'plan.chateau': 'CASTLE',
+      'plan.yoga': 'WINE\n&\nYOGA',
+      'plan.foodtrucks': 'FOOD TRUCKS',
+      'plan.bar': 'BAR',
+      'plan.scene': 'STAGE',
+      'plan.vip': 'VIP AREA',
+      'plan.village': '🍷 WINEMAKERS VILLAGE',
+      'plan.resto': '🍴 FOOD COURT',
+      'plan.info': 'ℹ️ INFO POINT',
+      'plan.entree': '➜ MAIN ENTRANCE',
+      'plan.sortie': 'EXIT ➜',
+      'plan.chargement': 'LOADING AREA',
+      'plan.legendTaste': 'Stand to taste',
+      'plan.legendRated': 'Rated stand ✔',
+      'plan.legendAnim': 'Activities',
+      'plan.legendFood': 'Food village',
+      'plan.standTitle': 'Stand {stand} — {name}',
+
+      // Database errors
+      'db.notConfigured': 'Database not configured: copy secrets/config.example.js to secrets/config.js and fill in the Turso URL and token.',
+      'db.http': 'Turso error: HTTP {status}',
+      'db.sql': 'SQL error: {message}',
+    },
+  };
+
+  let lang = localStorage.getItem(KEY);
+  if (lang !== 'fr' && lang !== 'en') {
+    lang = (navigator.language || 'fr').toLowerCase().startsWith('fr') ? 'fr' : 'en';
+  }
+  document.documentElement.lang = lang;
+
+  function t(key, vars = {}) {
+    let str = STRINGS[lang][key] ?? STRINGS.fr[key] ?? key;
+    for (const [k, v] of Object.entries(vars)) str = str.replaceAll(`{${k}}`, v);
+    return str;
+  }
+
+  // Traduit les textes statiques du HTML
+  function apply(root = document) {
+    for (const el of root.querySelectorAll('[data-i18n]')) {
+      el.textContent = t(el.dataset.i18n);
+    }
+    for (const el of root.querySelectorAll('[data-i18n-placeholder]')) {
+      el.placeholder = t(el.dataset.i18nPlaceholder);
+    }
+  }
+
+  // Bouton FR ⇄ EN ; le changement de langue recharge la page
+  function makeToggle() {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'lang-toggle';
+    btn.textContent = lang === 'fr' ? '🇬🇧 EN' : '🇫🇷 FR';
+    btn.title = lang === 'fr' ? 'Switch to English' : 'Passer en français';
+    btn.addEventListener('click', () => {
+      localStorage.setItem(KEY, lang === 'fr' ? 'en' : 'fr');
+      window.location.reload();
+    });
+    return btn;
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    apply();
+    // Les pages sans header connecté reçoivent un bouton de langue flottant
+    if (typeof Header === 'undefined') {
+      const btn = makeToggle();
+      btn.classList.add('floating');
+      document.body.appendChild(btn);
+    }
+  });
+
+  return { get lang() { return lang; }, t, apply, makeToggle };
+})();
+
+// Raccourci global
+const t = I18N.t;

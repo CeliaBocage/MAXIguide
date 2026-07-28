@@ -3,31 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MAXIguide — Domaines</title>
+  <title data-i18n="domaines.pageTitle">MAXIguide — Domaines</title>
   <link rel="stylesheet" href="../../css/style.css">
 </head>
 <body>
   <main class="container">
     <div class="view-toggle">
-      <button type="button" id="toggle-list" class="btn btn-toggle active">Liste</button>
-      <button type="button" id="toggle-plan" class="btn btn-toggle">Plan du parc</button>
+      <button type="button" id="toggle-list" class="btn btn-toggle active" data-i18n="domaines.viewList">Liste</button>
+      <button type="button" id="toggle-plan" class="btn btn-toggle" data-i18n="domaines.viewPlan">Plan du parc</button>
     </div>
 
     <section id="view-list">
-      <h2>Les domaines</h2>
+      <h2 data-i18n="domaines.heading">Les domaines</h2>
       <ul id="domaine-list" class="domaine-list">
         <!-- rempli par domaines.js -->
       </ul>
     </section>
 
     <section id="view-plan" hidden>
-      <h2>Plan du parc</h2>
-      <p class="muted">Touchez un stand pour le noter — les stands verts sont déjà dans votre guide.</p>
+      <h2 data-i18n="domaines.planHeading">Plan du parc</h2>
+      <p class="muted" data-i18n="domaines.planHint">Touchez un stand pour le noter — les stands verts sont déjà dans votre guide.</p>
       <div id="plan-container" class="plan-container"></div>
     </section>
   </main>
 
   <script src="../../secrets/config.js"></script>
+  <script src="../../js/i18n.js"></script>
   <script src="../../js/db.js"></script>
   <script src="../../js/data/domaines.js"></script>
   <script src="../../js/data/plan.js"></script>

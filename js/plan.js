@@ -42,7 +42,7 @@ function renderPlan(container, { decorate, onClick } = {}) {
     viewBox: '0 0 950 1270',
     class: 'plan-svg',
     role: 'img',
-    'aria-label': 'Plan du parc de la fête des vins',
+    'aria-label': t('plan.aria'),
   });
 
   // Pelouse du parc + enceinte rose
@@ -62,28 +62,28 @@ function renderPlan(container, { decorate, onClick } = {}) {
 
   const zones = svgEl('g');
   // Bâtiments et espaces (d'après le plan officiel)
-  planZone(zones, { x: 95, y: 355, w: 110, h: 42, fill: '#5c2d5d', label: 'PROTECTION CIVILE', fontSize: 9 });
-  planZone(zones, { x: 113, y: 430, w: 82, h: 62, fill: '#f8bbd0', label: '🧸\nGARDERIE', fontSize: 11, color: '#ad1457' });
-  planZone(zones, { x: 120, y: 528, w: 58, h: 130, fill: '#5c2d5d', label: 'CHÂTEAU', vertical: true, fontSize: 13 });
-  planZone(zones, { x: 118, y: 680, w: 62, h: 82, fill: '#e5387e', label: 'VINS\n&\nYOGA', fontSize: 11 });
-  planZone(zones, { x: 213, y: 800, w: 32, h: 170, fill: '#f5a81c', label: 'FOOD TRUCKS', vertical: true, fontSize: 12 });
-  planZone(zones, { x: 408, y: 668, w: 64, h: 38, fill: '#e63946', label: 'BAR', fontSize: 15 });
-  planZone(zones, { x: 712, y: 548, w: 30, h: 92, fill: '#e5387e', label: 'SCÈNE', vertical: true, fontSize: 12 });
+  planZone(zones, { x: 95, y: 355, w: 110, h: 42, fill: '#5c2d5d', label: t('plan.protection'), fontSize: 9 });
+  planZone(zones, { x: 113, y: 430, w: 82, h: 62, fill: '#f8bbd0', label: t('plan.garderie'), fontSize: 11, color: '#ad1457' });
+  planZone(zones, { x: 120, y: 528, w: 58, h: 130, fill: '#5c2d5d', label: t('plan.chateau'), vertical: true, fontSize: 13 });
+  planZone(zones, { x: 118, y: 680, w: 62, h: 82, fill: '#e5387e', label: t('plan.yoga'), fontSize: 11 });
+  planZone(zones, { x: 213, y: 800, w: 32, h: 170, fill: '#f5a81c', label: t('plan.foodtrucks'), vertical: true, fontSize: 12 });
+  planZone(zones, { x: 408, y: 668, w: 64, h: 38, fill: '#e63946', label: t('plan.bar'), fontSize: 15 });
+  planZone(zones, { x: 712, y: 548, w: 30, h: 92, fill: '#e5387e', label: t('plan.scene'), vertical: true, fontSize: 12 });
 
   // Espace VIP (ovale crème + étiquette rose)
   zones.appendChild(svgEl('ellipse', { cx: 570, cy: 772, rx: 165, ry: 52, fill: '#fdeecf' }));
-  planZone(zones, { x: 545, y: 748, w: 115, h: 48, fill: '#e5387e', label: 'ESPACE VIP', fontSize: 12 });
+  planZone(zones, { x: 545, y: 748, w: 115, h: 48, fill: '#e5387e', label: t('plan.vip'), fontSize: 12 });
 
   // Étiquettes texte
   const labels = [
-    { x: 460, y: 330, text: '🍷 VILLAGE VIGNERONS', size: 17, color: '#e63946' },
-    { x: 495, y: 590, text: '🍴 ESPACE RESTAURATION', size: 13, color: '#e8901a' },
-    { x: 315, y: 890, text: '🍴 ESPACE RESTAURATION', size: 13, color: '#e8901a' },
-    { x: 543, y: 152, text: 'ℹ️ POINT INFO', size: 12, color: '#3d6fb6' },
+    { x: 460, y: 330, text: t('plan.village'), size: 17, color: '#e63946' },
+    { x: 495, y: 590, text: t('plan.resto'), size: 13, color: '#e8901a' },
+    { x: 315, y: 890, text: t('plan.resto'), size: 13, color: '#e8901a' },
+    { x: 543, y: 152, text: t('plan.info'), size: 12, color: '#3d6fb6' },
     { x: 478, y: 775, text: '🚻', size: 16, color: '#3d6fb6' },
-    { x: 700, y: 55, text: '➜ ENTRÉE GÉNÉRALE', size: 18, color: '#6c63b5' },
-    { x: 845, y: 512, text: 'SORTIE ➜', size: 18, color: '#6c63b5' },
-    { x: 745, y: 280, text: 'AIRE DE CHARGEMENT', size: 11, color: '#6c63b5', rotate: 65 },
+    { x: 700, y: 55, text: t('plan.entree'), size: 18, color: '#6c63b5' },
+    { x: 845, y: 512, text: t('plan.sortie'), size: 18, color: '#6c63b5' },
+    { x: 745, y: 280, text: t('plan.chargement'), size: 11, color: '#6c63b5', rotate: 65 },
   ];
   for (const l of labels) {
     const attrs = {
@@ -103,7 +103,7 @@ function renderPlan(container, { decorate, onClick } = {}) {
 
     const deco = decorate ? decorate(domaine) : {};
     const g = svgEl('g', { class: 'plan-stand' + (onClick ? ' clickable' : '') + (deco.done ? ' done' : '') });
-    g.appendChild(svgEl('title', {}, `Stand ${domaine.stand} — ${domaine.name}`));
+    g.appendChild(svgEl('title', {}, t('plan.standTitle', { stand: domaine.stand, name: domaine.name })));
 
     g.appendChild(svgEl('circle', { cx: pos.x, cy: pos.y, r: 11 }));
     g.appendChild(svgEl('text', {
@@ -127,10 +127,10 @@ function renderPlan(container, { decorate, onClick } = {}) {
   // Légende
   const legend = svgEl('g');
   const legendItems = [
-    { color: '#e63946', label: 'Stand à déguster' },
-    { color: '#7cb518', label: 'Stand noté ✔' },
-    { color: '#e5387e', label: 'Animations' },
-    { color: '#f5a81c', label: 'Village gourmand' },
+    { color: '#e63946', label: t('plan.legendTaste') },
+    { color: '#7cb518', label: t('plan.legendRated') },
+    { color: '#e5387e', label: t('plan.legendAnim') },
+    { color: '#f5a81c', label: t('plan.legendFood') },
   ];
   legendItems.forEach((item, i) => {
     const y = 1035 + i * 34;

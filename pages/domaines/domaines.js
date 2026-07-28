@@ -46,10 +46,10 @@ async function main() {
       if (fiche.coeur) parts.push('❤️'.repeat(fiche.coeur));
       if (fiche.etoile) parts.push('⭐'.repeat(fiche.etoile));
       if (fiche.commentaire) parts.push('💬');
-      status.textContent = parts.join(' ') || 'Fiche vide';
+      status.textContent = parts.join(' ') || t('domaines.emptyCard');
       status.classList.add('rated');
     } else {
-      status.textContent = 'À déguster';
+      status.textContent = t('domaines.toTaste');
     }
 
     link.append(name, status);

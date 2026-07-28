@@ -3,46 +3,48 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MAXIguide — Guides des invités</title>
+  <title data-i18n="guide.pageTitle">MAXIguide — Guides des invités</title>
   <link rel="stylesheet" href="../../css/style.css">
 </head>
 <body>
   <main class="container">
     <header class="hero">
-      <h1>Les guides des invités</h1>
-      <p class="tagline">Choisissez un invité pour feuilleter son guide.</p>
+      <h1 data-i18n="guide.heading">Les guides des invités</h1>
+      <p class="tagline" data-i18n="guide.tagline">Choisissez un invité pour feuilleter son guide.</p>
     </header>
 
     <section>
-      <label for="user-select" class="muted">Le guide de…</label>
+      <label for="user-select" class="muted" data-i18n="guide.selectLabel">Le guide de…</label>
       <select id="user-select" class="user-select">
-        <option value="">— Choisir un invité —</option>
+        <option value="" data-i18n="guide.selectPlaceholder">— Choisir un invité —</option>
       </select>
     </section>
 
     <div id="guide-content" hidden>
       <section>
-        <h2>Son plan du parc</h2>
-        <p class="muted">Ses ❤️ et ⭐ sont posés sur les stands, comme des stickers.</p>
+        <h2 data-i18n="guide.planTitle">Son plan du parc</h2>
+        <p class="muted" data-i18n="guide.planHint">Ses ❤️ et ⭐ sont posés sur les stands, comme des stickers.</p>
         <div id="plan-container" class="plan-container"></div>
       </section>
 
       <section>
-        <h2>Ses fiches</h2>
+        <h2 data-i18n="guide.cards">Ses fiches</h2>
         <ul id="guide-list" class="guide-list">
           <!-- rempli par guide.js -->
         </ul>
-        <p id="guide-empty" class="muted" hidden>Cet invité n'a encore rien noté.</p>
+        <p id="guide-empty" class="muted" data-i18n="guide.empty" hidden>Cet invité n'a encore rien noté.</p>
       </section>
     </div>
 
     <div class="actions">
-      <a href="../../index.html" class="link-back">← Retour à l'accueil</a>
+      <a href="../../index.html" class="link-back" data-i18n="common.backHome">← Retour à l'accueil</a>
     </div>
   </main>
 
   <script src="../../secrets/config.js"></script>
+  <script src="../../js/i18n.js"></script>
   <script src="../../js/db.js"></script>
+  <script src="../../js/bottle.js"></script>
   <script src="../../js/data/domaines.js"></script>
   <script src="../../js/data/plan.js"></script>
   <script src="../../js/plan.js"></script>

@@ -57,12 +57,13 @@ const DOMAINES = [
 
 // Ce qu'on peut noter dans chaque fiche, selon le type du domaine.
 // color : teinte du liquide dans la bouteille-jauge de la page notation.
+// Les libellés viennent du dictionnaire i18n (js/i18n.js, chargé avant ce fichier).
 const BOISSONS = {
-  blanc:  { key: 'note_blanc',  label: '⚪ Blancs',        color: '#e9c46a' },
-  rouge:  { key: 'note_rouge',  label: '🔴 Rouges',        color: '#7b1e2b' },
-  rose:   { key: 'note_rose',   label: '🌸 Rosés',         color: '#f2a0b2' },
-  whisky: { key: 'note_whisky', label: '🥃 Whisky',        color: '#c67c2e' },
-  jus:    { key: 'note_jus',    label: '🍇 Jus de raisin', color: '#6d3a7c' },
+  blanc:  { key: 'note_blanc',  label: t('boisson.blanc'),  color: '#e9c46a' },
+  rouge:  { key: 'note_rouge',  label: t('boisson.rouge'),  color: '#7b1e2b' },
+  rose:   { key: 'note_rose',   label: t('boisson.rose'),   color: '#f2a0b2' },
+  whisky: { key: 'note_whisky', label: t('boisson.whisky'), color: '#c67c2e' },
+  jus:    { key: 'note_jus',    label: t('boisson.jus'),    color: '#6d3a7c' },
 };
 
 const TYPE_BOISSONS = {

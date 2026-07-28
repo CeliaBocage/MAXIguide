@@ -415,27 +415,114 @@ section h2 {
   font-weight: 600;
 }
 
-.symbol-btns {
+/* Stickers : chips des stickers posés + bouton d'ajout + panneau de choix */
+.sticker-section {
   display: flex;
-  gap: 0.15rem;
+  flex-direction: column;
+  gap: 0.75rem;
+  align-items: flex-start;
 }
 
-.symbol {
+.sticker-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.sticker-chips:empty {
+  display: none;
+}
+
+.sticker-chip {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: #fff;
+  border: 1px solid #e0d9cf;
+  border-radius: 999px;
+  padding: 0.25rem 0.5rem 0.25rem 0.75rem;
+}
+
+.sticker-chip-body {
   background: none;
   border: none;
-  font-size: 1.6rem;
+  font-size: 1.4rem;
   cursor: pointer;
-  color: #c9c9c9;
-  padding: 0.1rem;
-  transition: transform 0.1s;
+  padding: 0;
 }
 
-.symbol:hover {
-  transform: scale(1.15);
+.sticker-chip-remove {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.15rem 0.3rem;
 }
 
-.symbol.filled {
-  color: #f5b301;
+.sticker-chip-remove:hover {
+  color: var(--primary);
+}
+
+.add-sticker-btn {
+  padding: 0.5rem 1.1rem;
+}
+
+.sticker-picker {
+  width: 100%;
+  border: 1px dashed #ccc;
+  border-radius: var(--radius);
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.picker-step {
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.sticker-choices {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.sticker-choice {
+  background: #fff;
+  border: 2px solid #e0d9cf;
+  border-radius: var(--radius);
+  padding: 0.5rem 0.9rem;
+  font-size: 1rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.sticker-choice.active {
+  border-color: var(--primary);
+}
+
+.sticker-qty {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.sticker-qty-btn {
+  width: 2.4rem;
+  height: 2.4rem;
+  border: 2px solid #e0d9cf;
+  border-radius: 50%;
+  background: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sticker-qty-btn:hover,
+.sticker-qty-btn.active {
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 /* Bouteille-jauge : une bouteille couchée qui se remplit selon la note */
@@ -569,8 +656,38 @@ section .actions {
   color: var(--muted);
 }
 
+.guide-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
 .guide-note:empty {
   display: none;
+}
+
+/* Petite bouteille-jauge en lecture seule (guides et moyennes) */
+.bottle-mini {
+  display: inline-flex;
+  width: 64px;
+  flex-shrink: 0;
+}
+
+.bottle-mini svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.guide-note-value {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.avg-bottles {
+  display: inline-flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
 .guide-comment {
@@ -582,6 +699,123 @@ section .actions {
 /* --- Tableaux larges --- */
 .table-scroll {
   overflow-x: auto;
+}
+
+/* --- Menus déroulants (page Moyennes) --- */
+.accordion {
+  border: 1px solid #e2e2e2;
+  border-radius: var(--radius);
+  margin-bottom: 0.6rem;
+  background: var(--card);
+}
+
+.accordion summary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.7rem 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  list-style: none;
+}
+
+.accordion summary::-webkit-details-marker {
+  display: none;
+}
+
+.accordion summary::after {
+  content: '▾';
+  color: var(--muted);
+  transition: transform 0.15s;
+}
+
+.accordion[open] summary::after {
+  transform: rotate(180deg);
+}
+
+.accordion summary:hover {
+  background: rgba(230, 57, 70, 0.05);
+  border-radius: var(--radius);
+}
+
+.acc-title {
+  flex: 1;
+}
+
+.acc-meta {
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 0.9rem;
+  white-space: nowrap;
+}
+
+.accordion-body {
+  padding: 0.25rem 1rem 0.9rem;
+  border-top: 1px solid #eee;
+}
+
+.fiche-line {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.45rem 0;
+  border-bottom: 1px dashed #eee;
+}
+
+.fiche-line:last-child {
+  border-bottom: none;
+}
+
+.fiche-who {
+  font-weight: 600;
+}
+
+.fiche-notes {
+  color: var(--muted);
+}
+
+.fiche-comment {
+  width: 100%;
+  margin: 0;
+  font-style: italic;
+  color: var(--muted);
+}
+
+.avg-line {
+  background: rgba(230, 57, 70, 0.06);
+  border-radius: 8px;
+  padding: 0.45rem 0.6rem;
+  border-bottom: none;
+  margin-bottom: 0.25rem;
+}
+
+/* --- Bouton de langue FR ⇄ EN --- */
+.lang-toggle {
+  background: var(--card);
+  border: 1px solid #ddd;
+  border-radius: 999px;
+  padding: 0.3rem 0.7rem;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  transition: border-color 0.15s;
+}
+
+.lang-toggle:hover {
+  border-color: var(--primary);
+}
+
+.lang-toggle.floating {
+  position: fixed;
+  top: 0.75rem;
+  right: 0.75rem;
+  z-index: 20;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12);
 }
 
 /* --- Plan du parc (SVG) --- */

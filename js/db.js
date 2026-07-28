@@ -22,7 +22,7 @@ function parseCell(cell) {
 
 async function dbExecute(sql, args = []) {
   if (typeof TURSO === 'undefined' || TURSO.url.includes('REMPLACER')) {
-    throw new Error("Base non configurée : copiez secrets/config.example.js en secrets/config.js et remplissez l'URL et le token Turso.");
+    throw new Error(t('db.notConfigured'));
   }
 
   // L'API HTTP attend une URL https:// (turso donne souvent libsql://)
@@ -42,11 +42,11 @@ async function dbExecute(sql, args = []) {
     }),
   });
 
-  if (!res.ok) throw new Error(`Erreur Turso : HTTP ${res.status}`);
+  if (!res.ok) throw new Error(t('db.http', { status: res.status }));
 
   const data = await res.json();
   const first = data.results[0];
-  if (first.type === 'error') throw new Error(`Erreur SQL : ${first.error.message}`);
+  if (first.type === 'error') throw new Error(t('db.sql', { message: first.error.message }));
 
   const { cols, rows } = first.response.result;
   return rows.map(row =>

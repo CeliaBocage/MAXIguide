@@ -3,43 +3,45 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MAXIguide — Notation</title>
+  <title data-i18n="notation.pageTitle">MAXIguide — Notation</title>
   <link rel="stylesheet" href="../../css/style.css">
 </head>
 <body>
   <main class="container">
     <section>
       <h1 id="domaine-name" class="notation-title">…</h1>
-      <p class="tagline" id="notation-sub">Notez ce que vous avez dégusté — cliquez à nouveau sur la même valeur pour effacer.</p>
+      <p class="tagline" id="notation-sub">…</p>
 
-      <h2>Les vins</h2>
+      <h2 data-i18n="notation.drinks">Les vins</h2>
       <div id="note-rows" class="note-rows">
         <!-- rangées ⚪🔴🌸 remplies par notation.js -->
       </div>
 
-      <h2>Les stickers</h2>
-      <p class="muted sticker-hint">1 c'est excellent, 2 c'est exceptionnel… 5 c'est légendaire !</p>
+      <h2 data-i18n="notation.stickers">Les stickers</h2>
+      <p class="muted sticker-hint" data-i18n="notation.stickerHint">1 c'est excellent, 2 c'est exceptionnel… 5 c'est légendaire !</p>
       <div id="sticker-rows" class="note-rows">
-        <!-- rangées ❤️⭐ remplies par notation.js -->
+        <!-- chips ❤️⭐ + bouton « Ajouter un sticker » remplis par notation.js -->
       </div>
 
-      <h2>Un petit mot ?</h2>
-      <textarea id="commentaire" class="commentaire" rows="3"
+      <h2 data-i18n="notation.comment">Un petit mot ?</h2>
+      <textarea id="commentaire" class="commentaire" rows="3" data-i18n-placeholder="notation.commentPlaceholder"
         placeholder="Votre note écrite (facultatif) : une anecdote, un vin à retenir…"></textarea>
 
       <div class="actions">
-        <button type="button" id="save-btn" class="btn btn-primary">Enregistrer</button>
+        <button type="button" id="save-btn" class="btn btn-primary" data-i18n="notation.save">Enregistrer</button>
       </div>
-      <p id="saved-msg" class="saved-msg" hidden>✔ Fiche enregistrée !</p>
+      <p id="saved-msg" class="saved-msg" data-i18n="notation.saved" hidden>✔ Fiche enregistrée !</p>
     </section>
 
     <div class="actions">
-      <a href="../domaines/index.html" class="link-back">← Retour aux domaines</a>
+      <a href="../domaines/index.html" class="link-back" data-i18n="notation.back">← Retour aux domaines</a>
     </div>
   </main>
 
   <script src="../../secrets/config.js"></script>
+  <script src="../../js/i18n.js"></script>
   <script src="../../js/db.js"></script>
+  <script src="../../js/bottle.js"></script>
   <script src="../../js/data/domaines.js"></script>
   <script src="../../js/storage.js"></script>
   <script>const BASE = '../../';</script>

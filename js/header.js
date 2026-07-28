@@ -23,8 +23,8 @@ const Header = {
     const nav = document.createElement('nav');
     nav.className = 'tabs';
     for (const tab of [
-      { key: 'domaines', label: 'Domaines', href: BASE + 'pages/domaines/index.html' },
-      { key: 'moyennes', label: 'Moyennes', href: BASE + 'pages/moyennes/index.html' },
+      { key: 'domaines', label: t('nav.domaines'), href: BASE + 'pages/domaines/index.html' },
+      { key: 'moyennes', label: t('nav.moyennes'), href: BASE + 'pages/moyennes/index.html' },
     ]) {
       const link = document.createElement('a');
       link.href = tab.href;
@@ -48,10 +48,10 @@ const Header = {
     const switchLink = document.createElement('a');
     switchLink.className = 'switch-user';
     switchLink.href = BASE + 'pages/users/index.html';
-    switchLink.title = "Changer d'utilisateur";
+    switchLink.title = t('nav.switchUser');
     switchLink.textContent = '⇄';
 
-    userBox.append(name, score, switchLink);
+    userBox.append(name, score, switchLink, I18N.makeToggle());
     header.append(brand, nav, userBox);
     document.body.prepend(header);
 

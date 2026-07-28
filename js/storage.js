@@ -40,14 +40,14 @@ const Storage = {
 
   async createUser(name) {
     const trimmed = name.trim();
-    if (!trimmed) return { error: 'Le nom ne peut pas être vide.' };
+    if (!trimmed) return { error: t('users.errEmpty') };
 
     const id = crypto.randomUUID();
     try {
       await dbExecute('INSERT INTO users (id, name) VALUES (?, ?)', [id, trimmed]);
     } catch (err) {
       if (/UNIQUE/i.test(err.message)) {
-        return { error: 'Ce nom est déjà pris — choisissez-le dans la liste !' };
+        return { error: t('users.errTaken') };
       }
       throw err;
     }
@@ -105,41 +105,17 @@ const Storage = {
     );
   },
 
-  // --- Stats pour l'onglet Moyennes (nécessite js/data/domaines.js chargé avant) ---
+  // --- Stats pour l'onglet Moyennes ---
 
-  // Nombre de domaines notés par utilisateur : [{ id, name, rated }]
-  async getUsersWithProgress() {
+  // Toutes les fiches de tout le monde, avec le nom du participant
+  async getAllRatings() {
     return dbExecute(
-      `SELECT u.id, u.name, COUNT(r.domaine_id) AS rated
-       FROM users u
-       LEFT JOIN ratings r ON r.user_id = u.id
-       GROUP BY u.id
+      `SELECT r.user_id, u.name AS user_name, r.domaine_id,
+              r.note_blanc, r.note_rouge, r.note_rose, r.note_whisky, r.note_jus,
+              r.coeur, r.etoile, r.commentaire
+       FROM ratings r
+       JOIN users u ON u.id = r.user_id
        ORDER BY u.name COLLATE NOCASE`
     );
-  },
-
-  // Moyennes par domaine : { domaineId: { avg_blanc, avg_rouge, avg_rose, coeurs, etoiles, votes } }
-  async getDomaineAverages() {
-    const rows = await dbExecute(
-      `SELECT domaine_id,
-              AVG(note_blanc) AS avg_blanc,
-              AVG(note_rouge) AS avg_rouge,
-              AVG(note_rose) AS avg_rose,
-              AVG(note_whisky) AS avg_whisky,
-              AVG(note_jus) AS avg_jus,
-              SUM(coeur) AS coeurs,
-              SUM(etoile) AS etoiles,
-              COUNT(*) AS votes
-       FROM ratings
-       GROUP BY domaine_id`
-    );
-    return Object.fromEntries(rows.map(r => [r.domaine_id, r]));
-  },
-
-  // Part des domaines notés par au moins une personne (0 à 1)
-  async getGroupCoverage() {
-    if (!DOMAINES.length) return 0;
-    const rows = await dbExecute('SELECT COUNT(DISTINCT domaine_id) AS covered FROM ratings');
-    return rows[0].covered / DOMAINES.length;
   },
 };

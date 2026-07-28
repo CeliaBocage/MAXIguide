@@ -3,55 +3,55 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MAXIguide — Moyennes</title>
+  <title data-i18n="moy.pageTitle">MAXIguide — Moyennes</title>
   <link rel="stylesheet" href="../../css/style.css">
 </head>
 <body>
   <main class="container">
     <section>
-      <h2>Le groupe</h2>
+      <h2 data-i18n="moy.groupTitle">Le groupe</h2>
       <div class="stats-row">
         <div class="stat-tile">
           <span id="stat-avg-completion" class="stat-value">—</span>
-          <span class="stat-label">Complétion moyenne</span>
+          <span class="stat-label" data-i18n="moy.avgCompletion">Complétion moyenne</span>
         </div>
         <div class="stat-tile">
           <span id="stat-coverage" class="stat-value">—</span>
-          <span class="stat-label">Domaines couverts par le groupe</span>
+          <span class="stat-label" data-i18n="moy.coverage">Domaines couverts par le groupe</span>
         </div>
       </div>
     </section>
 
     <section>
-      <h2>Complétion par participant</h2>
-      <table class="data-table">
-        <thead>
-          <tr><th>Participant</th><th>Domaines notés</th><th>Complétion</th></tr>
-        </thead>
-        <tbody id="users-table">
-          <!-- rempli par moyennes.js -->
-        </tbody>
-      </table>
+      <h2 data-i18n="moy.planTitle">Le plan moyen du groupe</h2>
+      <p class="muted" data-i18n="moy.planHint">Les stickers moyens du groupe sont posés sur chaque stand — les stands verts ont été notés au moins une fois.</p>
+      <div id="plan-container" class="plan-container"></div>
     </section>
 
     <section>
-      <h2>Moyennes par domaine</h2>
-      <div class="table-scroll">
-        <table class="data-table">
-          <thead>
-            <tr><th>Domaine</th><th>⚪</th><th>🔴</th><th>🌸</th><th>🥃</th><th>🍇</th><th>❤️</th><th>⭐</th><th>Fiches</th></tr>
-          </thead>
-          <tbody id="domaines-table">
-            <!-- rempli par moyennes.js -->
-          </tbody>
-        </table>
+      <h2 data-i18n="moy.usersTitle">Détail par participant</h2>
+      <p class="muted" data-i18n="moy.usersHint">Dépliez un participant pour voir toutes ses fiches.</p>
+      <div id="users-acc">
+        <!-- rempli par moyennes.js -->
+      </div>
+    </section>
+
+    <section>
+      <h2 data-i18n="moy.domainesTitle">Détail par domaine</h2>
+      <p class="muted" data-i18n="moy.domainesHint">Dépliez un domaine pour voir les moyennes et les fiches de chacun.</p>
+      <div id="domaines-acc">
+        <!-- rempli par moyennes.js -->
       </div>
     </section>
   </main>
 
   <script src="../../secrets/config.js"></script>
+  <script src="../../js/i18n.js"></script>
   <script src="../../js/db.js"></script>
+  <script src="../../js/bottle.js"></script>
   <script src="../../js/data/domaines.js"></script>
+  <script src="../../js/data/plan.js"></script>
+  <script src="../../js/plan.js"></script>
   <script src="../../js/storage.js"></script>
   <script>const BASE = '../../';</script>
   <script src="../../js/header.js"></script>

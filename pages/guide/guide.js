@@ -5,10 +5,24 @@ const content = document.getElementById('guide-content');
 const listEl = document.getElementById('guide-list');
 const emptyEl = document.getElementById('guide-empty');
 
-function symbolCell(label, value) {
+// Une note de boisson : émoji + petite bouteille remplie à value/5 + « x/5 ».
+function noteCell(boisson, value) {
   const span = document.createElement('span');
   span.className = 'guide-note';
-  span.textContent = value ? `${label} ${'★'.repeat(value)}` : '';
+  if (!value) return span;
+
+  const emoji = document.createElement('span');
+  emoji.textContent = boisson.label.split(' ')[0];
+
+  const bottle = document.createElement('span');
+  bottle.className = 'bottle-mini';
+  bottle.appendChild(makeBottleSvg(boisson.color, value).svg);
+
+  const score = document.createElement('span');
+  score.className = 'guide-note-value';
+  score.textContent = `${value}/5`;
+
+  span.append(emoji, bottle, score);
   return span;
 }
 
@@ -56,13 +70,9 @@ async function renderGuide(userId) {
 
     const notes = document.createElement('div');
     notes.className = 'guide-notes';
-    notes.append(
-      symbolCell('⚪', fiche.note_blanc),
-      symbolCell('🔴', fiche.note_rouge),
-      symbolCell('🌸', fiche.note_rose),
-      symbolCell('🥃', fiche.note_whisky),
-      symbolCell('🍇', fiche.note_jus),
-    );
+    for (const boisson of Object.values(BOISSONS)) {
+      if (fiche[boisson.key]) notes.append(noteCell(boisson, fiche[boisson.key]));
+    }
     li.appendChild(notes);
 
     if (fiche.commentaire) {

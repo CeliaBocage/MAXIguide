@@ -3,13 +3,9 @@
 const params = new URLSearchParams(window.location.search);
 const domaine = getDomaine(params.get('domaine'));
 
-// Bouteille couchée (goulot à droite) : contour + zone de remplissage, viewBox 0 0 200 60.
-const BOTTLE_PATH =
-  'M14 8 H128 C146 8 150 20 164 22 H184 V17 H196 V43 H184 V38 ' +
-  'C150 40 146 52 128 52 H14 Q4 52 4 42 V18 Q4 8 14 8 Z';
-
 // Une bouteille qui se remplit selon la note (0 à 5) : chaque cinquième de la
 // bouteille est cliquable, re-cliquer sur le niveau courant remet à zéro.
+// Le SVG lui-même vient de js/bottle.js (partagé avec les guides et moyennes).
 function makeBottleRow(boisson, getValue, setValue) {
   const row = document.createElement('div');
   row.className = 'note-row';
@@ -21,25 +17,7 @@ function makeBottleRow(boisson, getValue, setValue) {
   const gauge = document.createElement('div');
   gauge.className = 'bottle-gauge';
 
-  const SVG_NS = 'http://www.w3.org/2000/svg';
-  const el = (name, attrs, ...children) => {
-    const node = document.createElementNS(SVG_NS, name);
-    for (const [k, v] of Object.entries(attrs)) node.setAttribute(k, v);
-    node.append(...children);
-    return node;
-  };
-
-  const clipId = `bottle-clip-${boisson.key}`;
-  const liquid = el('rect', { class: 'bottle-liquid', width: 0, height: 60,
-    'clip-path': `url(#${clipId})`, fill: boisson.color });
-  const svg = el('svg', { viewBox: '0 0 200 60', 'aria-hidden': 'true' },
-    el('defs', {}, el('clipPath', { id: clipId }, el('path', { d: BOTTLE_PATH }))),
-    el('rect', { class: 'bottle-bg', width: 200, height: 60, 'clip-path': `url(#${clipId})` }),
-    liquid,
-    el('g', { class: 'bottle-ticks', 'clip-path': `url(#${clipId})` },
-      ...[40, 80, 120, 160].map(x => el('line', { x1: x, y1: 8, x2: x, y2: 52 }))),
-    el('path', { class: 'bottle-outline', d: BOTTLE_PATH }),
-  );
+  const { svg, liquid } = makeBottleSvg(boisson.color);
 
   const zones = document.createElement('div');
   zones.className = 'bottle-zones';
@@ -55,7 +33,7 @@ function makeBottleRow(boisson, getValue, setValue) {
     const btn = document.createElement('button');
     btn.type = 'button';
     btn.className = 'bottle-zone';
-    btn.setAttribute('aria-label', `${boisson.label} : ${value} sur 5`);
+    btn.setAttribute('aria-label', t('notation.ariaValue', { label: boisson.label, value }));
     btn.addEventListener('click', () => {
       setValue(value === getValue() ? 0 : value);
       render();
@@ -74,40 +52,123 @@ function makeBottleRow(boisson, getValue, setValue) {
   return row;
 }
 
-// Une rangée de 5 symboles cliquables (notes ou stickers).
-// Cliquer sur la valeur déjà sélectionnée remet à zéro.
-function makeSymbolRow(label, symbols, getValue, setValue) {
-  const row = document.createElement('div');
-  row.className = 'note-row';
+// Stickers disponibles : chaque type garde son champ (coeur / etoile) en base.
+const STICKERS = [
+  { key: 'coeur', emoji: '❤️', label: t('notation.lovePeople') },
+  { key: 'etoile', emoji: '⭐', label: t('notation.loveWines') },
+];
 
-  const labelEl = document.createElement('span');
-  labelEl.className = 'note-label';
-  labelEl.textContent = label;
+// Section stickers : les stickers posés s'affichent en « chips » (cliquer
+// dessus pour les modifier, ✕ pour les retirer), et un bouton « Ajouter un
+// sticker » ouvre un petit panneau pour choisir lequel et combien.
+function makeStickerSection(getValue, setValue) {
+  const section = document.createElement('div');
+  section.className = 'sticker-section';
 
-  const btns = document.createElement('div');
-  btns.className = 'symbol-btns';
+  const chips = document.createElement('div');
+  chips.className = 'sticker-chips';
+
+  const addBtn = document.createElement('button');
+  addBtn.type = 'button';
+  addBtn.className = 'btn btn-secondary add-sticker-btn';
+  addBtn.textContent = t('notation.addSticker');
+
+  const picker = document.createElement('div');
+  picker.className = 'sticker-picker';
+  picker.hidden = true;
+
+  let picking = null; // type de sticker en cours de choix dans le panneau
+
+  addBtn.addEventListener('click', () => {
+    picking = null;
+    picker.hidden = !picker.hidden;
+    render();
+  });
 
   function render() {
-    btns.replaceChildren();
-    const current = getValue();
-    for (let value = 1; value <= 5; value++) {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      const active = value <= current;
-      btn.className = 'symbol' + (active ? ' filled' : '');
-      btn.textContent = active ? symbols.filled : symbols.empty;
-      btn.setAttribute('aria-label', `${label} : ${value} sur 5`);
-      btn.addEventListener('click', () => {
-        setValue(value === getValue() ? 0 : value);
+    chips.replaceChildren();
+    for (const sticker of STICKERS) {
+      const count = getValue(sticker.key);
+      if (!count) continue;
+
+      const chip = document.createElement('div');
+      chip.className = 'sticker-chip';
+
+      const body = document.createElement('button');
+      body.type = 'button';
+      body.className = 'sticker-chip-body';
+      body.textContent = sticker.emoji.repeat(count);
+      body.setAttribute('aria-label', t('notation.chipEdit', { label: sticker.label, count }));
+      body.addEventListener('click', () => {
+        picking = sticker.key;
+        picker.hidden = false;
         render();
       });
-      btns.appendChild(btn);
+
+      const remove = document.createElement('button');
+      remove.type = 'button';
+      remove.className = 'sticker-chip-remove';
+      remove.textContent = '✕';
+      remove.setAttribute('aria-label', t('notation.chipRemove', { label: sticker.label }));
+      remove.addEventListener('click', () => {
+        setValue(sticker.key, 0);
+        render();
+      });
+
+      chip.append(body, remove);
+      chips.appendChild(chip);
+    }
+
+    picker.replaceChildren();
+    if (!picker.hidden) {
+      const step1 = document.createElement('p');
+      step1.className = 'muted picker-step';
+      step1.textContent = t('notation.whichSticker');
+
+      const types = document.createElement('div');
+      types.className = 'sticker-choices';
+      for (const sticker of STICKERS) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'sticker-choice' + (picking === sticker.key ? ' active' : '');
+        btn.textContent = `${sticker.emoji} ${sticker.label}`;
+        btn.addEventListener('click', () => {
+          picking = sticker.key;
+          render();
+        });
+        types.appendChild(btn);
+      }
+      picker.append(step1, types);
+
+      if (picking) {
+        const step2 = document.createElement('p');
+        step2.className = 'muted picker-step';
+        step2.textContent = t('notation.howMany');
+
+        const qty = document.createElement('div');
+        qty.className = 'sticker-qty';
+        const current = getValue(picking);
+        for (let n = 1; n <= 5; n++) {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'sticker-qty-btn' + (n === current ? ' active' : '');
+          btn.textContent = String(n);
+          btn.addEventListener('click', () => {
+            setValue(picking, n);
+            picking = null;
+            picker.hidden = true;
+            render();
+          });
+          qty.appendChild(btn);
+        }
+        picker.append(step2, qty);
+      }
     }
   }
 
   render();
-  row.append(labelEl, btns);
-  return row;
+  section.append(chips, addBtn, picker);
+  return section;
 }
 
 async function main() {
@@ -121,7 +182,7 @@ async function main() {
 
   document.getElementById('domaine-name').textContent = domaine.name;
   document.getElementById('notation-sub').textContent =
-    `Stand ${domaine.stand} — notez ce que vous avez dégusté (re-cliquez sur la même valeur pour effacer).`;
+    t('notation.sub', { stand: domaine.stand });
   document.title = `MAXIguide — ${domaine.name}`;
 
   const existing = (await Storage.getUserRatings(user.id))[domaine.id] || {};
@@ -141,12 +202,10 @@ async function main() {
   }
 
   const stickerRows = document.getElementById('sticker-rows');
-  stickerRows.append(
-    makeSymbolRow('On a adoré les gens', { filled: '❤️', empty: '🤍' },
-      () => fiche.coeur, v => { fiche.coeur = v; }),
-    makeSymbolRow('Les vins étaient excellents', { filled: '⭐', empty: '☆' },
-      () => fiche.etoile, v => { fiche.etoile = v; }),
-  );
+  stickerRows.append(makeStickerSection(
+    key => fiche[key] || 0,
+    (key, v) => { fiche[key] = v; },
+  ));
 
   const commentaireEl = document.getElementById('commentaire');
   commentaireEl.value = existing.commentaire || '';
