@@ -549,10 +549,73 @@ test('renderCarte ne rend cliquable que si on lui donne un onClick', () => {
   assertEqual(clickable.querySelectorAll('.carte-dom.clickable').length, DOMAINES.length);
 });
 
-test('renderCarte fournit les trois boutons de zoom', () => {
+test('renderCarte fournit les boutons zoom, recadrage et plein écran', () => {
   const container = document.createElement('div');
   renderCarte(container);
-  assertEqual(container.querySelectorAll('.carte-zoom-btn').length, 3);
+  const labels = [...container.querySelectorAll('.carte-zoom-btn')].map(b => b.textContent);
+  assertEqual(labels, ['+', '−', '⤢', '⛶']);
+});
+
+test('le bouton plein écran bascule la classe, et Échap en sort', () => {
+  const container = document.createElement('div');
+  document.body.appendChild(container);
+  renderCarte(container);
+  const plein = [...container.querySelectorAll('.carte-zoom-btn')].find(b => b.textContent === '⛶');
+
+  plein.click();
+  assert(container.classList.contains('carte-plein'), 'la carte devrait passer en plein écran');
+  assert(document.body.classList.contains('carte-plein-actif'), 'le corps de page devrait être figé');
+  assertEqual(plein.textContent, '✕', 'le bouton devrait proposer de sortir');
+
+  document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }));
+  assert(!container.classList.contains('carte-plein'), 'Échap devrait sortir du plein écran');
+  assert(!document.body.classList.contains('carte-plein-actif'));
+  container.remove();
+});
+
+// --- La liste des domaines ---
+
+test('la liste propose les 51 domaines, triés par nom', () => {
+  const container = document.createElement('div');
+  renderCarte(container);
+  const noms = [...container.querySelectorAll('.carte-liste-nom')].map(e => e.textContent);
+  assertEqual(noms.length, DOMAINES.length);
+  assertEqual(noms, [...noms].sort((a, b) => a.localeCompare(b, 'fr')), 'la liste n’est pas triée');
+});
+
+test('la recherche ignore accents et casse, et cherche aussi la commune', () => {
+  const container = document.createElement('div');
+  renderCarte(container);
+  const search = container.querySelector('.carte-search');
+  const visibles = () => [...container.querySelectorAll('.carte-liste-items li')]
+    .filter(li => !li.hidden)
+    .map(li => li.querySelector('.carte-liste-nom').textContent);
+
+  search.value = 'romeli';
+  search.dispatchEvent(new Event('input'));
+  assertEqual(visibles(), ['Roméli'], 'un nom accentué doit se trouver sans accent');
+
+  search.value = 'CAHUZAC';
+  search.dispatchEvent(new Event('input'));
+  assert(visibles().length > 1, 'chercher une commune doit ramener ses domaines');
+
+  search.value = 'zzz';
+  search.dispatchEvent(new Event('input'));
+  assertEqual(visibles(), []);
+  assert(!container.querySelector('.carte-liste-vide').hidden, 'le message « aucun résultat » doit apparaître');
+});
+
+test('cliquer un domaine de la liste zoome la carte dessus', () => {
+  const container = document.createElement('div');
+  renderCarte(container);
+  const monde = container.querySelector('.carte-monde');
+  assert(monde.getAttribute('transform').includes('scale(1.0000)'), 'la carte devrait partir dézoomée');
+
+  container.querySelector('.carte-liste-btn').click();
+  const t = monde.getAttribute('transform');
+  assert(!t.includes('scale(1.0000)'), `la carte devrait avoir zoomé (${t})`);
+  assertEqual(container.querySelectorAll('.carte-dom.choisi').length, 1,
+    'le domaine choisi devrait être mis en avant');
 });
 
 // --- Exécution ---

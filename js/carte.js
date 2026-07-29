@@ -213,27 +213,12 @@ function cartePlaceLabel(text, anchor, size, occupied, frame, opts = {}) {
   return null;
 }
 
-// --- Rendu --------------------------------------------------------------
+// --- Rendu ---------------------------------------------------------------
 function renderCarte(container, { decorate, onClick } = {}) {
   container.replaceChildren();
   container.classList.add('carte-wrap');
 
   const { width: W, height: H } = CARTE_VIEW;
-  const svg = svgEl('svg', {
-    viewBox: `0 0 ${W} ${H + CARTE_LEGEND_H}`,
-    class: 'carte-svg',
-    role: 'img',
-    'aria-label': t('carte.aria'),
-  });
-
-  // Fond : la campagne du Gaillacois. Le même rectangle sert de masque, pour
-  // que rien ne déborde du cadre quand on se déplace dedans.
-  svg.appendChild(svgEl('rect', { x: 0, y: 0, width: W, height: H, rx: 10, class: 'carte-fond' }));
-  const defs = svgEl('defs');
-  const clip = svgEl('clipPath', { id: 'carte-clip' });
-  clip.appendChild(svgEl('rect', { x: 0, y: 0, width: W, height: H, rx: 10 }));
-  defs.appendChild(clip);
-  svg.appendChild(defs);
 
   // Où se trouve chaque domaine, et ce que le groupe en a pensé
   const domaines = [];
@@ -248,7 +233,35 @@ function renderCarte(container, { decorate, onClick } = {}) {
     });
   }
   // Les domaines notés placent leur nom en premier : ce sont eux qu'on cherche
-  domaines.sort((a, b) => (b.deco.done ? 1 : 0) - (a.deco.done ? 1 : 0));
+  const parPriorite = [...domaines].sort((a, b) => (b.deco.done ? 1 : 0) - (a.deco.done ? 1 : 0));
+
+  // --- Structure : la carte et sa légende d'un côté, la liste de l'autre
+  const body = document.createElement('div');
+  body.className = 'carte-body';
+  const vueBox = document.createElement('div');
+  vueBox.className = 'carte-vue';
+  const scene = document.createElement('div');
+  scene.className = 'carte-scene';
+  vueBox.appendChild(scene);
+  body.appendChild(vueBox);
+  container.appendChild(body);
+
+  const svg = svgEl('svg', {
+    viewBox: `0 0 ${W} ${H}`,
+    class: 'carte-svg',
+    role: 'img',
+    'aria-label': t('carte.aria'),
+  });
+  scene.appendChild(svg);
+
+  // Fond : la campagne du Gaillacois. Le même rectangle sert de masque, pour
+  // que rien ne déborde du cadre quand on se déplace dedans.
+  svg.appendChild(svgEl('rect', { x: 0, y: 0, width: W, height: H, rx: 10, class: 'carte-fond' }));
+  const defs = svgEl('defs');
+  const clip = svgEl('clipPath', { id: 'carte-clip' });
+  clip.appendChild(svgEl('rect', { x: 0, y: 0, width: W, height: H, rx: 10 }));
+  defs.appendChild(clip);
+  svg.appendChild(defs);
 
   // --- Le paysage, qui se déplace et grossit avec le zoom
   const monde = svgEl('g', { class: 'carte-monde', 'clip-path': 'url(#carte-clip)' });
@@ -276,6 +289,7 @@ function renderCarte(container, { decorate, onClick } = {}) {
   svg.appendChild(calque);
 
   const vue = { k: 1, tx: 0, ty: 0 };
+  let choisi = null; // le domaine mis en avant depuis la liste
   const versEcran = (p) => ({ x: p.x * vue.k + vue.tx, y: p.y * vue.k + vue.ty });
 
   function dessineCalque() {
@@ -296,16 +310,16 @@ function renderCarte(container, { decorate, onClick } = {}) {
     }
 
     // Nom des rivières
-    for (const spot of CARTE_RIVER_SPOTS) {
-      if (!spot) continue;
+    CARTE_RIVER_SPOTS.forEach((spot, i) => {
+      if (!spot) return;
       const p = versEcran(spot);
-      if (!dedans(p)) continue;
+      if (!dedans(p)) return;
       calque.appendChild(svgEl('text', {
         x: p.x, y: p.y, 'text-anchor': 'middle',
         transform: `rotate(${spot.angle.toFixed(1)} ${p.x.toFixed(1)} ${p.y.toFixed(1)})`,
         class: 'carte-river-label',
-      }, CARTE_RIVERS[CARTE_RIVER_SPOTS.indexOf(spot)].name));
-    }
+      }, CARTE_RIVERS[i].name));
+    });
 
     // Villages et villes repères
     for (const place of CARTE_PLACES) {
@@ -326,17 +340,26 @@ function renderCarte(container, { decorate, onClick } = {}) {
     }
 
     // Les domaines : un point à leur couleur, leur nom à côté
-    for (const n of domaines) {
+    for (const n of parPriorite) {
       if (!dedans(n.screen)) continue;
       const { domaine, geo, deco, palette, screen } = n;
+      const enAvant = choisi === domaine.id;
       const g = svgEl('g', {
-        class: 'carte-dom' + (onClick ? ' clickable' : '') + (deco.done ? ' done' : ''),
+        class: 'carte-dom' + (onClick ? ' clickable' : '')
+          + (deco.done ? ' done' : '') + (enAvant ? ' choisi' : ''),
       });
       g.appendChild(svgEl('title', {}, t('carte.standTitle', {
         stand: domaine.stand, name: domaine.name, commune: geo.commune,
       })));
 
       const r = deco.done ? 6 : 4.5;
+      // Halo autour du domaine sélectionné dans la liste
+      if (enAvant) {
+        g.appendChild(svgEl('circle', {
+          cx: screen.x, cy: screen.y, r: r + 7, class: 'carte-dom-halo',
+          style: `stroke:${palette.ink}`,
+        }));
+      }
       g.appendChild(svgEl('circle', {
         cx: screen.x, cy: screen.y, r, class: 'carte-dom-dot',
         style: `fill:${deco.done ? palette.ink : '#fff'};stroke:${palette.ink}`,
@@ -350,9 +373,10 @@ function renderCarte(container, { decorate, onClick } = {}) {
         }, deco.badge));
       }
 
-      // Le nom, et la note moyenne quand il y en a une
+      // Le nom, et la note moyenne quand il y en a une. Le domaine mis en
+      // avant garde toujours son nom, même si la place est chère.
       const score = deco.score != null ? deco.score.toFixed(1).replace('.', ',') : null;
-      const spot = cartePlaceLabel(geo.court, screen, 11, occupied, frame, {
+      const spot = cartePlaceLabel(geo.court, screen, 11, enAvant ? [] : occupied, frame, {
         gap: r + 3, extra: score ? 22 : 0,
       });
       if (spot) {
@@ -405,13 +429,121 @@ function renderCarte(container, { decorate, onClick } = {}) {
     appliqueVue();
   }
 
+  // Amène un domaine au centre de la carte et le met en avant
+  function centrerSur(node) {
+    choisi = node.domaine.id;
+    vue.k = Math.max(vue.k, 4);
+    vue.tx = W / 2 - node.world.x * vue.k;
+    vue.ty = H / 2 - node.world.y * vue.k;
+    appliqueVue();
+  }
+
+  function reset() {
+    choisi = null;
+    vue.k = 1; vue.tx = 0; vue.ty = 0;
+    appliqueVue();
+  }
+
   carteInteractions(container, svg, vue, zoomVers, appliqueVue);
-  svg.appendChild(carteLegend());
-  container.appendChild(svg);
-  container.appendChild(carteControls(zoomVers, () => {
-    vue.k = 1; vue.tx = 0; vue.ty = 0; appliqueVue();
-  }));
+
+  // La légende, dans son propre SVG : en plein écran elle se range sous la
+  // carte au lieu de manger la place en hauteur.
+  const legende = svgEl('svg', {
+    viewBox: `0 0 ${W} ${CARTE_LEGEND_H}`, class: 'carte-legende', 'aria-hidden': 'true',
+  });
+  legende.appendChild(carteLegend());
+  vueBox.appendChild(legende);
+
+  // La liste des domaines, pour aller directement à l'un d'eux
+  const liste = carteListe(domaines, centrerSur);
+  body.appendChild(liste.el);
+
+  scene.appendChild(carteControls(zoomVers, reset, container));
   appliqueVue();
+}
+
+// --- La liste des domaines ------------------------------------------------
+// Sans accents ni casse, pour que « romeli » trouve « Roméli »
+function carteSansAccent(s) {
+  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+}
+
+function carteListe(domaines, onPick) {
+  const el = document.createElement('div');
+  el.className = 'carte-liste';
+
+  const titre = document.createElement('p');
+  titre.className = 'carte-liste-titre';
+  titre.textContent = t('carte.listTitle', { n: domaines.length });
+  el.appendChild(titre);
+
+  const search = document.createElement('input');
+  search.type = 'search';
+  search.className = 'carte-search';
+  search.placeholder = t('carte.searchPlaceholder');
+  search.setAttribute('aria-label', t('carte.searchPlaceholder'));
+  el.appendChild(search);
+
+  const ul = document.createElement('ul');
+  ul.className = 'carte-liste-items';
+  el.appendChild(ul);
+
+  const vide = document.createElement('p');
+  vide.className = 'carte-liste-vide muted';
+  vide.textContent = t('carte.listEmpty');
+  vide.hidden = true;
+  el.appendChild(vide);
+
+  const lignes = [];
+  for (const n of [...domaines].sort((a, b) => a.geo.court.localeCompare(b.geo.court, 'fr'))) {
+    const li = document.createElement('li');
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'carte-liste-btn';
+    btn.title = t('carte.focus', { name: n.domaine.name });
+
+    const puce = document.createElement('span');
+    puce.className = 'carte-puce' + (n.deco.done ? ' done' : '');
+    puce.style.borderColor = n.palette.ink;
+    if (n.deco.done) puce.style.background = n.palette.ink;
+
+    const nom = document.createElement('span');
+    nom.className = 'carte-liste-nom';
+    nom.textContent = n.geo.court;
+
+    btn.append(puce, nom);
+    if (n.deco.score != null) {
+      const note = document.createElement('span');
+      note.className = 'carte-liste-note';
+      note.textContent = n.deco.score.toFixed(1).replace('.', ',');
+      btn.appendChild(note);
+    }
+
+    btn.addEventListener('click', () => {
+      for (const l of lignes) l.btn.classList.remove('active');
+      btn.classList.add('active');
+      onPick(n);
+    });
+
+    li.appendChild(btn);
+    ul.appendChild(li);
+    // On cherche aussi sur le nom complet et la commune : « château » ou
+    // « Cahuzac » doivent ramener quelque chose.
+    lignes.push({ li, btn, cle: carteSansAccent(`${n.geo.court} ${n.domaine.name} ${n.geo.commune}`) });
+  }
+
+  search.addEventListener('input', () => {
+    const q = carteSansAccent(search.value.trim());
+    let visibles = 0;
+    for (const l of lignes) {
+      const ok = !q || l.cle.includes(q);
+      l.li.hidden = !ok;
+      if (ok) visibles++;
+    }
+    vide.hidden = visibles > 0;
+  });
+
+  return { el };
 }
 
 // --- Déplacement et zoom -------------------------------------------------
@@ -419,8 +551,15 @@ function carteInteractions(container, svg, vue, zoomVers, appliqueVue) {
   // Un événement souris/doigt, ramené aux coordonnées du dessin
   const enCadre = (e) => {
     const r = svg.getBoundingClientRect();
-    const echelle = CARTE_VIEW.width / r.width;
-    return { x: (e.clientX - r.left) * echelle, y: (e.clientY - r.top) * echelle };
+    // La carte garde ses proportions : elle est centrée dans la place qu'on
+    // lui donne, avec d'éventuelles marges de part et d'autre.
+    const echelle = Math.min(r.width / CARTE_VIEW.width, r.height / CARTE_VIEW.height);
+    const margeX = (r.width - CARTE_VIEW.width * echelle) / 2;
+    const margeY = (r.height - CARTE_VIEW.height * echelle) / 2;
+    return {
+      x: (e.clientX - r.left - margeX) / echelle,
+      y: (e.clientY - r.top - margeY) / echelle,
+    };
   };
 
   let drag = null;
@@ -459,7 +598,57 @@ function carteInteractions(container, svg, vue, zoomVers, appliqueVue) {
   }, { passive: false });
 }
 
-function carteControls(zoomVers, reset) {
+// --- Plein écran ---------------------------------------------------------
+// On passe par l'API du navigateur quand elle existe, mais l'affichage repose
+// sur une simple classe CSS : Safari iOS refuse le plein écran sur autre chose
+// qu'une vidéo, et la carte doit marcher là aussi.
+function cartePleinEntrer(container, bouton) {
+  container.classList.add('carte-plein');
+  document.body.classList.add('carte-plein-actif');
+  bouton.textContent = '✕';
+  bouton.title = t('carte.fullscreenExit');
+  bouton.setAttribute('aria-label', t('carte.fullscreenExit'));
+  if (container.requestFullscreen) container.requestFullscreen().catch(() => {});
+}
+
+// Sortie : on retrouve la carte concernée dans la page, ce qui permet à Échap
+// et au bouton du navigateur de fonctionner sans écouteur par carte.
+function cartePleinSortir() {
+  const container = document.querySelector('.carte-wrap.carte-plein');
+  if (!container) return;
+  container.classList.remove('carte-plein');
+  document.body.classList.remove('carte-plein-actif');
+  const bouton = container.querySelector('.carte-plein-btn');
+  if (bouton) {
+    bouton.textContent = '⛶';
+    bouton.title = t('carte.fullscreen');
+    bouton.setAttribute('aria-label', t('carte.fullscreen'));
+  }
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+}
+
+// Écouteurs posés une seule fois pour toute la page : la carte est redessinée
+// à chaque changement d'invité, il ne faut pas les empiler.
+let cartePleinPret = false;
+
+function cartePleinEcran(container, bouton) {
+  bouton.classList.add('carte-plein-btn');
+  bouton.addEventListener('click', () => {
+    if (container.classList.contains('carte-plein')) cartePleinSortir();
+    else cartePleinEntrer(container, bouton);
+  });
+
+  if (cartePleinPret) return;
+  cartePleinPret = true;
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') cartePleinSortir();
+  });
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) cartePleinSortir();
+  });
+}
+
+function carteControls(zoomVers, reset, container) {
   const box = document.createElement('div');
   box.className = 'carte-controls';
   const bouton = (label, title, action) => {
@@ -469,22 +658,24 @@ function carteControls(zoomVers, reset) {
     b.textContent = label;
     b.title = title;
     b.setAttribute('aria-label', title);
-    b.addEventListener('click', action);
+    if (action) b.addEventListener('click', action);
     box.appendChild(b);
+    return b;
   };
   bouton('+', t('carte.zoomIn'), () => zoomVers(1.6));
   bouton('−', t('carte.zoomOut'), () => zoomVers(1 / 1.6));
   bouton('⤢', t('carte.zoomReset'), reset);
+  cartePleinEcran(container, bouton('⛶', t('carte.fullscreen'), null));
   return box;
 }
 
 // --- Légende -------------------------------------------------------------
 function carteLegend() {
-  const { width: W, height: H } = CARTE_VIEW;
+  const W = CARTE_VIEW.width;
   const g = svgEl('g');
 
   // Rangée 1 : les domaines
-  const row1 = H + 30;
+  const row1 = 26;
   g.appendChild(svgEl('circle', {
     cx: 30, cy: row1, r: 4.5, class: 'carte-dom-dot', style: 'fill:#fff;stroke:#7048a6',
   }));
@@ -495,10 +686,10 @@ function carteLegend() {
   g.appendChild(svgEl('text', { x: 416, y: row1 + 5, class: 'carte-legend-label' }, t('carte.legendRatedDot')));
 
   // Rangée 2 : les vignes, colorées par domaine ou laissées neutres
-  const row2 = H + 66;
-  const tache = (x, style, cls) => {
+  const row2 = 62;
+  const tache = (x, y, style, cls) => {
     const p = svgEl('path', {
-      d: `M${x},${row2 - 11}L${x + 30},${row2 - 13}L${x + 32},${row2 + 5}L${x + 2},${row2 + 7}Z`,
+      d: `M${x},${y - 11}L${x + 30},${y - 13}L${x + 32},${y + 5}L${x + 2},${y + 7}Z`,
       class: cls,
     });
     if (style) p.setAttribute('style', style);
@@ -506,14 +697,14 @@ function carteLegend() {
   };
   // Trois teintes de la palette, pour montrer qu'un domaine = une couleur
   [0, 4, 7].forEach((i, k) => {
-    g.appendChild(tache(19 + k * 34, `fill:${CARTE_PALETTE[i].fill};stroke:${CARTE_PALETTE[i].ink}`, 'carte-vignes-key'));
+    g.appendChild(tache(19 + k * 34, row2, `fill:${CARTE_PALETTE[i].fill};stroke:${CARTE_PALETTE[i].ink}`, 'carte-vignes-key'));
   });
   g.appendChild(svgEl('text', { x: 133, y: row2 + 3, class: 'carte-legend-label' }, t('carte.legendOwnVines')));
-  g.appendChild(tache(560, null, 'carte-vignes-key neutre'));
+  g.appendChild(tache(560, row2, null, 'carte-vignes-key neutre'));
   g.appendChild(svgEl('text', { x: 598, y: row2 + 3, class: 'carte-legend-label' }, t('carte.legendOtherVines')));
 
   // Rangée 3 : le reste du paysage
-  const row3 = H + 104;
+  const row3 = 100;
   const surfaces = [
     { x: 19, cls: 'carte-bois', label: t('carte.legendWood') },
     { x: 220, cls: 'carte-eau', label: t('carte.legendWater') },
@@ -531,7 +722,7 @@ function carteLegend() {
   g.appendChild(svgEl('text', { x: 714, y: row3 + 3, class: 'carte-legend-label' }, t('carte.legendRiver')));
 
   // Rangée 4 : l'échelle métrique et le mode d'emploi du zoom
-  const row4 = H + 150;
+  const row4 = 146;
   g.appendChild(svgEl('text', { x: 19, y: row4, class: 'carte-legend-hint' }, t('carte.zoomHint')));
   g.appendChild(svgEl('text', { x: 19, y: row4 + 22, class: 'carte-legend-hint' }, t('carte.attrNote')));
 
@@ -550,7 +741,7 @@ function carteLegend() {
   }, t('carte.scale', { n: barKm })));
 
   g.appendChild(svgEl('text', {
-    x: W - 30, y: H + CARTE_LEGEND_H - 12, 'text-anchor': 'end', class: 'carte-credits',
+    x: W - 30, y: CARTE_LEGEND_H - 12, 'text-anchor': 'end', class: 'carte-credits',
   }, t('carte.credits')));
 
   return g;

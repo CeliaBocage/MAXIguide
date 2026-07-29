@@ -12,6 +12,7 @@ const I18N = (() => {
       'nav.classements': 'Classements',
       'nav.moyennes': 'Moyennes',
       'nav.switchUser': "Changer d'utilisateur",
+      'nav.signIn': 'Choisir mon profil',
       'sync.pending': '{n} fiche(s) en attente de réseau — elles partiront toutes seules dès que possible.',
 
       // Accueil
@@ -185,6 +186,12 @@ const I18N = (() => {
       'carte.legendTown': 'Village bâti',
       'carte.zoomHint': 'Zoomez (+ / − ou double-clic) pour faire apparaître tous les noms, puis glissez pour vous promener.',
       'carte.attrNote': 'Chaque parcelle est rattachée à la cave la plus proche à moins de 2 km : OpenStreetMap ne dit pas qui cultive quoi.',
+      'carte.listTitle': 'Les {n} domaines',
+      'carte.searchPlaceholder': 'Chercher un domaine…',
+      'carte.listEmpty': 'Aucun domaine ne correspond.',
+      'carte.focus': 'Voir {name} sur la carte',
+      'carte.fullscreen': 'Carte en plein écran',
+      'carte.fullscreenExit': 'Quitter le plein écran',
       'carte.zoomIn': 'Zoomer',
       'carte.zoomOut': 'Dézoomer',
       'carte.zoomReset': 'Revoir toute la carte',
@@ -204,6 +211,7 @@ const I18N = (() => {
       'nav.classements': 'Rankings',
       'nav.moyennes': 'Averages',
       'nav.switchUser': 'Switch user',
+      'nav.signIn': 'Pick my profile',
       'sync.pending': '{n} card(s) waiting for network — they will be sent automatically as soon as possible.',
 
       // Home
@@ -377,6 +385,12 @@ const I18N = (() => {
       'carte.legendTown': 'Built-up area',
       'carte.zoomHint': 'Zoom in (+ / − or double-click) to reveal every name, then drag to wander around.',
       'carte.attrNote': 'Each parcel is tied to the nearest cellar within 2 km: OpenStreetMap does not say who farms what.',
+      'carte.listTitle': 'The {n} wineries',
+      'carte.searchPlaceholder': 'Search a winery…',
+      'carte.listEmpty': 'No winery matches.',
+      'carte.focus': 'Show {name} on the map',
+      'carte.fullscreen': 'Full-screen map',
+      'carte.fullscreenExit': 'Leave full screen',
       'carte.zoomIn': 'Zoom in',
       'carte.zoomOut': 'Zoom out',
       'carte.zoomReset': 'See the whole map',

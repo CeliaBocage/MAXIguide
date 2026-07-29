@@ -53,7 +53,13 @@
   <script src="js/svg.js"></script>
   <script src="js/carte.js"></script>
   <script src="js/storage.js"></script>
+  <script>const BASE = './';</script>
+  <script src="js/header.js"></script>
   <script>
+    // La barre de navigation du site, ouverte à tous : sans profil choisi elle
+    // propose simplement d'en choisir un, au lieu de rediriger.
+    Header.mount(null, { requireUser: false }).catch(() => {});
+
     // Si un utilisateur est déjà sélectionné, proposer de reprendre directement
     (async () => {
       try {

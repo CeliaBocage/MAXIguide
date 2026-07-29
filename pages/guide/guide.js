@@ -100,6 +100,9 @@ async function renderGuide(userId) {
 }
 
 async function main() {
+  // Page ouverte à tous : le header s'affiche même sans profil choisi
+  await Header.mount(null, { requireUser: false }).catch(() => {});
+
   const users = await Storage.getUsers();
   usersById = new Map(users.map(u => [u.id, u]));
   for (const user of users) {

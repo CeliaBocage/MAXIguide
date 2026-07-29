@@ -2,12 +2,22 @@
 // Chaque page définit `const BASE = '...'` (chemin relatif vers la racine)
 // avant d'inclure ce script, puis appelle `await Header.mount(...)`, qui
 // retourne l'utilisateur courant (ou null après redirection).
+//
+// Les pages ouvertes à tous (accueil, guides des invités) passent
+// `{ requireUser: false }` : le header s'affiche quand même, avec un lien
+// « Choisir mon profil » à la place du nom, et personne n'est redirigé.
 const Header = {
   user: null,
 
-  async mount(activeTab) {
-    this.user = await Storage.getCurrentUser();
-    if (!this.user) {
+  async mount(activeTab, { requireUser = true } = {}) {
+    try {
+      this.user = await Storage.getCurrentUser();
+    } catch {
+      // Base injoignable : sur une page ouverte à tous, le header reste utile
+      if (requireUser) throw new Error('utilisateur introuvable');
+      this.user = null;
+    }
+    if (!this.user && requireUser) {
       window.location.replace(BASE + 'pages/users/index.html');
       return null;
     }
@@ -36,6 +46,18 @@ const Header = {
 
     const userBox = document.createElement('div');
     userBox.className = 'user-box';
+
+    // Personne de connecté : on invite simplement à choisir un profil
+    if (!this.user) {
+      const signIn = document.createElement('a');
+      signIn.className = 'switch-user sign-in';
+      signIn.href = BASE + 'pages/users/index.html';
+      signIn.textContent = t('nav.signIn');
+      userBox.append(signIn, I18N.makeToggle());
+      header.append(brand, nav, userBox);
+      document.body.prepend(header);
+      return null;
+    }
 
     const name = document.createElement('span');
     name.className = 'user-name';

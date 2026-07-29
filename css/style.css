@@ -357,6 +357,19 @@ section h2 {
   color: var(--text);
 }
 
+/* Header des pages ouvertes à tous : invitation à choisir un profil */
+.switch-user.sign-in {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--primary);
+  white-space: nowrap;
+}
+
+.switch-user.sign-in:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
 /* --- Vue liste / plan --- */
 .view-toggle {
   display: flex;
@@ -1188,10 +1201,35 @@ section .actions {
   position: relative;
 }
 
-.carte-svg {
+/* Carte + légende d'un côté, liste des domaines de l'autre. En plein écran on
+   passe en row-reverse : la liste vient se ranger à gauche de la carte. */
+.carte-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  height: 100%;
+}
+
+.carte-vue {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+}
+
+.carte-scene {
+  position: relative;
+  min-height: 0;
+}
+
+.carte-svg,
+.carte-legende {
   width: 100%;
   height: auto;
   display: block;
+}
+
+.carte-svg {
   /* Le défilement vertical de la page reste au doigt ; le déplacement de la
      carte se fait à l'horizontale, et le zoom par les boutons. */
   touch-action: pan-y;
@@ -1205,7 +1243,7 @@ section .actions {
   cursor: grabbing;
 }
 
-/* Boutons de zoom, posés dans le coin de la carte */
+/* Boutons de zoom et plein écran, posés dans le coin de la carte */
 .carte-controls {
   position: absolute;
   top: 0.6rem;
@@ -1233,6 +1271,182 @@ section .actions {
 .carte-zoom-btn:hover {
   border-color: var(--primary);
   color: var(--primary);
+}
+
+/* --- La liste des domaines, pour aller directement à l'un d'eux --- */
+.carte-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  min-height: 0;
+}
+
+.carte-liste-titre {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.carte-search {
+  padding: 0.4rem 0.7rem;
+  border: 1px solid #ddd;
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+  font-family: inherit;
+  width: 100%;
+}
+
+.carte-search:focus {
+  outline: 2px solid var(--primary);
+  border-color: transparent;
+}
+
+.carte-liste-items {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 13rem;
+  overflow-y: auto;
+  /* Une grille plutôt que des colonnes CSS : les colonnes se rempliraient en
+     largeur et la liste ne pourrait plus défiler. En plein écran, la colonne
+     unique reprend le dessus. */
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+  gap: 0 0.5rem;
+  align-content: start;
+}
+
+.carte-liste-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.22rem 0.4rem;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.carte-liste-btn:hover {
+  background: rgba(230, 57, 70, 0.08);
+}
+
+.carte-liste-btn.active {
+  background: rgba(230, 57, 70, 0.14);
+  font-weight: 700;
+}
+
+.carte-puce {
+  flex: none;
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  background: #fff;
+}
+
+.carte-liste-nom {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.carte-liste-note {
+  flex: none;
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+
+.carte-liste-vide {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+/* --- Plein écran ---
+   Une classe suffit : Safari iOS refuse l'API plein écran sur autre chose
+   qu'une vidéo, et la carte doit rester utilisable là aussi. */
+body.carte-plein-actif {
+  overflow: hidden;
+}
+
+.carte-wrap.carte-plein {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: var(--bg);
+  padding: 0.6rem;
+  border-radius: 0;
+  overflow: hidden;
+}
+
+.carte-wrap.carte-plein .carte-body {
+  flex-direction: row-reverse;
+  gap: 0.6rem;
+}
+
+.carte-wrap.carte-plein .carte-vue {
+  flex: 1;
+  align-items: center;
+}
+
+/* La carte prend toute la hauteur et garde ses proportions ; la scène se
+   réduit à sa largeur, pour que les boutons restent posés dessus. */
+.carte-wrap.carte-plein .carte-scene {
+  flex: 1;
+  display: flex;
+  max-width: 100%;
+}
+
+.carte-wrap.carte-plein .carte-svg {
+  height: 100%;
+  width: auto;
+  max-width: 100%;
+}
+
+.carte-wrap.carte-plein .carte-legende {
+  flex: none;
+  height: 7rem;
+  width: auto;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.carte-wrap.carte-plein .carte-liste {
+  flex: none;
+  width: 15rem;
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 0.6rem;
+}
+
+.carte-wrap.carte-plein .carte-liste-items {
+  max-height: none;
+  flex: 1;
+  grid-template-columns: 1fr;
+}
+
+/* Sur un petit écran, la liste passe sous la carte même en plein écran */
+@media (max-width: 640px) {
+  .carte-wrap.carte-plein .carte-body {
+    flex-direction: column;
+  }
+
+  .carte-wrap.carte-plein .carte-liste {
+    width: auto;
+    max-height: 9rem;
+  }
+
+  .carte-wrap.carte-plein .carte-liste-items {
+    grid-template-columns: repeat(auto-fill, minmax(9rem, 1fr));
+  }
 }
 
 /* Le paysage réel, du fond vers la surface : campagne, bois, vignes,
