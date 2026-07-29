@@ -27,6 +27,14 @@
       <textarea id="commentaire" class="commentaire" rows="3" data-i18n-placeholder="notation.commentPlaceholder"
         placeholder="Votre note écrite (facultatif) : une anecdote, un vin à retenir…"></textarea>
 
+      <p class="muted photo-hint" data-i18n="notation.photoHint">Vous avez surkiffé une bouteille ? Gardez-en jusqu’à 3 photos !</p>
+      <div id="photo-row">
+        <!-- vignettes 📷 (avec ✕) remplies par notation.js -->
+      </div>
+      <button type="button" id="add-photo-btn" class="btn btn-secondary add-photo-btn" data-i18n="notation.addPhoto">📷 Ajouter une photo</button>
+      <input type="file" id="photo-input" accept="image/*" hidden>
+      <p id="photo-error" class="photo-error" hidden></p>
+
       <div class="actions">
         <button type="button" id="save-btn" class="btn btn-primary" data-i18n="notation.save">Enregistrer</button>
       </div>
@@ -47,6 +55,7 @@
   <script src="../../js/i18n.js"></script>
   <script src="../../js/db.js"></script>
   <script src="../../js/emoji.js"></script>
+  <script src="../../js/photos.js"></script>
   <script src="../../js/bottle.js"></script>
   <script src="../../js/data/domaines.js"></script>
   <script src="../../js/storage.js"></script>

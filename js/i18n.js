@@ -95,6 +95,12 @@ const I18N = (() => {
       'notation.howMany': 'Combien ?',
       'notation.chipEdit': '{label} : {count} — modifier',
       'notation.chipRemove': 'Retirer le sticker « {label} »',
+      'notation.photoHint': 'Vous avez surkiffé une bouteille ? Gardez-en jusqu’à 3 photos !',
+      'notation.addPhoto': '📷 Ajouter une photo',
+      'photo.view': 'Agrandir la photo {n}',
+      'photo.alt': 'Photo {n}',
+      'photo.remove': 'Retirer la photo {n}',
+      'photo.error': 'Impossible de lire cette image — réessayez avec une autre.',
 
       // Boissons
       'boisson.blanc': '⚪ Blancs',
@@ -255,6 +261,12 @@ const I18N = (() => {
       'notation.howMany': 'How many?',
       'notation.chipEdit': '{label}: {count} — edit',
       'notation.chipRemove': 'Remove the "{label}" sticker',
+      'notation.photoHint': 'Fell head over heels for a bottle? Keep up to 3 photos!',
+      'notation.addPhoto': '📷 Add a photo',
+      'photo.view': 'Enlarge photo {n}',
+      'photo.alt': 'Photo {n}',
+      'photo.remove': 'Remove photo {n}',
+      'photo.error': 'Could not read this image — try another one.',
 
       // Drinks
       'boisson.blanc': '⚪ Whites',

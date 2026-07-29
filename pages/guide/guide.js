@@ -91,6 +91,8 @@ async function renderGuide(userId) {
       li.appendChild(comment);
     }
 
+    if (fiche.photos?.length) li.appendChild(makePhotoStrip(fiche.photos));
+
     listEl.appendChild(li);
   }
 }

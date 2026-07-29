@@ -39,6 +39,7 @@ function ficheLine(who, fiche) {
     comment.textContent = `« ${fiche.commentaire} »`;
     line.appendChild(comment);
   }
+  if (fiche.photos?.length) line.appendChild(makePhotoStrip(fiche.photos));
   return line;
 }
 

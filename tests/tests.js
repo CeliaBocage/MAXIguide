@@ -340,6 +340,40 @@ test('isEmptyFiche : vide si aucune note, aucun sticker, aucun mot', () => {
   assert(!isEmptyFiche({ coeur: 0, etoile: 0, commentaire: 'super' }));
 });
 
+test('isEmptyFiche : des photos suffisent à garder la fiche', () => {
+  assert(isEmptyFiche({ coeur: 0, etoile: 0, photos: [] }));
+  assert(!isEmptyFiche({ coeur: 0, etoile: 0, photos: ['data:image/jpeg;base64,AAA'] }));
+});
+
+test('parsePhotos : JSON → tableau, et tableau vide si la colonne est illisible', () => {
+  assertEqual(parsePhotos('["a","b"]'), ['a', 'b']);
+  assertEqual(parsePhotos(['a']), ['a'], 'un tableau déjà parsé repasse tel quel');
+  assertEqual(parsePhotos(null), []);
+  assertEqual(parsePhotos('pas du JSON'), []);
+});
+
+test('les photos partent en JSON (3 maximum) et reviennent en tableau', async () => {
+  clearAppStorage();
+  mockFetchOK([]);
+  const photos = ['data:image/jpeg;base64,AAA', 'data:image/jpeg;base64,BBB'];
+  await Storage.saveRating('u1', 'rotier', { photos });
+  assertEqual(JSON.parse(sentArgs(0).at(-1)), photos, 'la colonne photos doit contenir le tableau en JSON');
+
+  mockFetchOK([]);
+  await Storage.saveRating('u1', 'rotier', { photos: ['a', 'b', 'c', 'd'] });
+  assertEqual(JSON.parse(sentArgs(0).at(-1)), ['a', 'b', 'c'], 'jamais plus de 3 photos en base');
+});
+
+test('les photos des fiches en attente restent visibles hors-ligne', async () => {
+  clearAppStorage();
+  mockFetchOK([]);
+  await Storage.getUserRatings('u1'); // remplit le cache
+  mockFetchOffline();
+  await Storage.saveRating('u1', 'rotier', { ...FICHE, photos: ['data:image/jpeg;base64,AAA'] });
+  const ratings = await Storage.getUserRatings('u1');
+  assertEqual(ratings['rotier'].photos, ['data:image/jpeg;base64,AAA']);
+});
+
 test('getCurrentUser retombe sur le cache local quand le réseau manque', async () => {
   clearAppStorage();
   Storage.setCurrentUser('u1');

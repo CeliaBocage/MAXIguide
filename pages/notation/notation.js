@@ -1,5 +1,5 @@
 // Page de notation d'un domaine (?domaine=<id>) : notes par couleur,
-// stickers (0 à 5 cœurs / étoiles) et commentaire libre.
+// stickers (0 à 5 cœurs / étoiles), commentaire libre et photos souvenirs.
 const params = new URLSearchParams(window.location.search);
 const domaine = getDomaine(params.get('domaine'));
 
@@ -253,6 +253,43 @@ async function main() {
   const commentaireEl = document.getElementById('commentaire');
   commentaireEl.value = existing.commentaire || '';
 
+  // Photos souvenirs (jusqu'à 3) : compressées côté client (js/photos.js)
+  // avant de rejoindre la fiche, comme n'importe quelle autre valeur.
+  const photos = parsePhotos(existing.photos).slice(0, MAX_PHOTOS);
+  const photoRow = document.getElementById('photo-row');
+  const photoBtn = document.getElementById('add-photo-btn');
+  const photoInput = document.getElementById('photo-input');
+  const photoErr = document.getElementById('photo-error');
+
+  function renderPhotos() {
+    photoRow.replaceChildren(makePhotoStrip(photos, {
+      onRemove: (i) => {
+        photos.splice(i, 1);
+        renderPhotos();
+      },
+    }));
+    photoBtn.hidden = photos.length >= MAX_PHOTOS;
+  }
+  renderPhotos();
+
+  photoBtn.addEventListener('click', () => photoInput.click());
+  photoInput.addEventListener('change', async () => {
+    const file = photoInput.files[0];
+    photoInput.value = '';
+    if (!file || photos.length >= MAX_PHOTOS) return;
+    photoErr.hidden = true;
+    photoBtn.disabled = true;
+    try {
+      photos.push(await compressPhoto(file));
+      renderPhotos();
+    } catch (err) {
+      photoErr.textContent = err.message;
+      photoErr.hidden = false;
+    } finally {
+      photoBtn.disabled = false;
+    }
+  });
+
   const saveBtn = document.getElementById('save-btn');
   const savedMsg = document.getElementById('saved-msg');
 
@@ -263,6 +300,7 @@ async function main() {
       const { queued } = await Storage.saveRating(user.id, domaine.id, {
         ...fiche,
         commentaire: commentaireEl.value,
+        photos,
       });
       await Header.refreshCompletion();
       savedMsg.textContent = t(queued ? 'notation.savedPending' : 'notation.saved');

@@ -8,13 +8,24 @@
 //   etoile : stickers « vins excellents », 0 à 5 (même échelle)
 //   perso  : stickers persos du guide (son emoji à lui), 0 à 5 (même échelle)
 //   commentaire : texte libre, null si vide
+//   photos : data-URL JPEG compressées (voir js/photos.js), toujours un tableau
+//            côté JS (max 3), stocké en JSON dans la colonne photos (null si vide)
 const NOTE_KEYS = ['note_blanc', 'note_rouge', 'note_rose', 'note_whisky', 'note_jus'];
 const STICKER_KEYS = ['coeur', 'etoile', 'perso'];
 
 function isEmptyFiche(fiche) {
   return NOTE_KEYS.every(k => !fiche[k])
     && STICKER_KEYS.every(k => !fiche[k])
-    && !(fiche.commentaire || '').trim();
+    && !(fiche.commentaire || '').trim()
+    && !(fiche.photos || []).length;
+}
+
+// La colonne photos arrive de la base en texte JSON (ou null) ; le reste du
+// code manipule toujours un tableau.
+function parsePhotos(value) {
+  if (Array.isArray(value)) return value;
+  if (!value) return [];
+  try { return JSON.parse(value) || []; } catch { return []; }
 }
 
 // Pour comparer les noms de profils : accents, casse et espaces ne comptent pas
@@ -197,12 +208,15 @@ const Storage = {
     try {
       const rows = await dbExecute(
         `SELECT domaine_id, note_blanc, note_rouge, note_rose, note_whisky, note_jus,
-                coeur, etoile, perso, commentaire
+                coeur, etoile, perso, commentaire, photos
          FROM ratings WHERE user_id = ?`,
         [userId]
       );
-      map = Object.fromEntries(rows.map(r => [r.domaine_id, r]));
-      localStorage.setItem(cacheKey, JSON.stringify(map));
+      map = Object.fromEntries(rows.map(r => [r.domaine_id, { ...r, photos: parsePhotos(r.photos) }]));
+      // Avec les photos, le cache peut dépasser le quota localStorage : dans ce
+      // cas on garde le cache précédent plutôt que de faire échouer la lecture.
+      try { localStorage.setItem(cacheKey, JSON.stringify(map)); }
+      catch { /* quota plein : tant pis pour le cache */ }
     } catch (err) {
       if (!err.retryable) throw err;
       const cached = localStorage.getItem(cacheKey);
@@ -220,6 +234,7 @@ const Storage = {
           ...Object.fromEntries(NOTE_KEYS.map(k => [k, op.fiche[k] || null])),
           ...Object.fromEntries(STICKER_KEYS.map(k => [k, op.fiche[k] || 0])),
           commentaire: (op.fiche.commentaire || '').trim() || null,
+          photos: parsePhotos(op.fiche.photos),
         };
       }
     }
@@ -251,6 +266,8 @@ const Storage = {
   // supprime la fiche si elle est entièrement vide
   async writeRating(userId, domaineId, fiche) {
     const commentaire = (fiche.commentaire || '').trim() || null;
+    // 3 photos max par fiche, quoi qu'en dise l'appelant (garde-fou taille)
+    const photos = parsePhotos(fiche.photos).slice(0, 3);
     const NOTES = NOTE_KEYS;
     const empty = isEmptyFiche(fiche);
 
@@ -264,8 +281,8 @@ const Storage = {
 
     await dbExecute(
       `INSERT INTO ratings (user_id, domaine_id, note_blanc, note_rouge, note_rose,
-                            note_whisky, note_jus, coeur, etoile, perso, commentaire)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            note_whisky, note_jus, coeur, etoile, perso, commentaire, photos)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT (user_id, domaine_id) DO UPDATE SET
          note_blanc = excluded.note_blanc,
          note_rouge = excluded.note_rouge,
@@ -276,12 +293,14 @@ const Storage = {
          etoile = excluded.etoile,
          perso = excluded.perso,
          commentaire = excluded.commentaire,
+         photos = excluded.photos,
          updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')`,
       [
         userId, domaineId,
         ...NOTES.map(k => fiche[k] || null),
         ...STICKER_KEYS.map(k => fiche[k] || 0),
         commentaire,
+        photos.length ? JSON.stringify(photos) : null,
       ]
     );
   },
@@ -290,13 +309,14 @@ const Storage = {
 
   // Toutes les fiches de tout le monde, avec le nom du participant
   async getAllRatings() {
-    return dbExecute(
+    const rows = await dbExecute(
       `SELECT r.user_id, u.name AS user_name, u.emoji AS user_emoji, r.domaine_id,
               r.note_blanc, r.note_rouge, r.note_rose, r.note_whisky, r.note_jus,
-              r.coeur, r.etoile, r.perso, r.commentaire
+              r.coeur, r.etoile, r.perso, r.commentaire, r.photos
        FROM ratings r
        JOIN users u ON u.id = r.user_id
        ORDER BY u.name COLLATE NOCASE`
     );
+    return rows.map(r => ({ ...r, photos: parsePhotos(r.photos) }));
   },
 };

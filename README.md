@@ -8,7 +8,8 @@ Chaque invité choisit son profil (ou le crée, sans mot de passe), puis parcour
 
 - une note de 1 à 5 ⭐ **par boisson** : blancs ⚪, rouges 🔴, rosés 🌸, whisky 🥃 (distillerie Castan, domaine Cazottes) et jus de raisin 🍇 pour les softs — les rangées s'adaptent au type de domaine ;
 - des **stickers** de 0 à 5 : ❤️ « on a adoré les gens », ⭐ « les vins étaient excellents » (1 c'est excellent, 2 c'est exceptionnel… 5 c'est légendaire) ;
-- un **commentaire libre** facultatif.
+- un **commentaire libre** facultatif ;
+- jusqu'à **3 photos** 📷 si on a surkiffé une bouteille (compressées côté client, visibles dans les guides et les moyennes).
 
 Le plan du parc est recréé en SVG interactif d'après le [plan officiel](https://www.fete-vins-gaillac.com/plan-du-parc) : on peut noter un stand en le touchant, et le guide de chaque invité affiche ses stickers posés sur le plan.
 
@@ -36,6 +37,7 @@ js/
 ├── data/plan.js              → positions des stands sur le plan (rangées, provisoire)
 ├── plan.js                   → rendu SVG du plan du parc (partagé domaines/guide)
 ├── db.js                     → client HTTP Turso (fetch, aucune dépendance)
+├── photos.js                 → photos souvenirs : compression, vignettes, plein écran
 ├── storage.js                → couche de données + file de sync hors-ligne
 ├── i18n.js                   → textes FR/EN (bouton 🇫🇷⇄🇬🇧)
 └── header.js                 → header commun : onglets, score de complétion, badge ⏳
@@ -56,7 +58,7 @@ Les profils et les fiches sont partagés entre tous les téléphones via une bas
 Tables (voir `schema.sql`) :
 
 - `users` — les profils (id, nom unique)
-- `ratings` — une fiche par utilisateur et par domaine : `note_blanc`, `note_rouge`, `note_rose`, `note_whisky`, `note_jus` (1–5 ou NULL), `coeur`, `etoile` (0–5), `commentaire`
+- `ratings` — une fiche par utilisateur et par domaine : `note_blanc`, `note_rouge`, `note_rose`, `note_whisky`, `note_jus` (1–5 ou NULL), `coeur`, `etoile` (0–5), `commentaire`, `photos` (JSON de data-URL JPEG, max 3)
 
 ## Configurer la base Turso
 
