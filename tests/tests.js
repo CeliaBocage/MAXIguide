@@ -556,6 +556,76 @@ test('renderCarte fournit les boutons zoom, recadrage et plein écran', () => {
   assertEqual(labels, ['+', '−', '⤢', '⛶']);
 });
 
+// Le pincement à deux doigts : la carte doit zoomer au doigt, pas seulement
+// aux boutons (sur téléphone il n'y a ni molette ni double-clic fiable).
+function carteDoigt(svg, type, id, x, y) {
+  svg.dispatchEvent(new PointerEvent(type, {
+    pointerId: id, clientX: x, clientY: y, bubbles: true, isPrimary: id === 1,
+  }));
+}
+
+test('écarter deux doigts zoome la carte, les rapprocher la dézoome', () => {
+  const container = document.createElement('div');
+  container.style.width = '600px';
+  document.body.appendChild(container);
+  renderCarte(container);
+  const svg = container.querySelector('.carte-svg');
+  const r = svg.getBoundingClientRect();
+  assert(r.width > 0, 'la carte devrait avoir une taille à l’écran');
+  const cx = r.left + r.width / 2;
+  const cy = r.top + r.height / 2;
+
+  // Deux doigts posés à 40 px de part et d'autre du centre, puis écartés au
+  // double : la carte doit avoir grossi.
+  carteDoigt(svg, 'pointerdown', 1, cx - 40, cy);
+  carteDoigt(svg, 'pointerdown', 2, cx + 40, cy);
+  carteDoigt(svg, 'pointermove', 2, cx + 120, cy);
+  assert(container.classList.contains('zoomed'), 'écarter les doigts devrait zoomer');
+  carteDoigt(svg, 'pointerup', 1, cx - 40, cy);
+  carteDoigt(svg, 'pointerup', 2, cx + 120, cy);
+
+  // Et en les rapprochant, on revient à la carte entière (le zoom ne descend
+  // jamais sous 1).
+  carteDoigt(svg, 'pointerdown', 1, cx - 200, cy);
+  carteDoigt(svg, 'pointerdown', 2, cx + 200, cy);
+  carteDoigt(svg, 'pointermove', 1, cx - 5, cy);
+  carteDoigt(svg, 'pointermove', 2, cx + 5, cy);
+  carteDoigt(svg, 'pointerup', 1, cx - 5, cy);
+  carteDoigt(svg, 'pointerup', 2, cx + 5, cy);
+  assert(!container.classList.contains('zoomed'), 'rapprocher les doigts devrait dézoomer');
+  container.remove();
+});
+
+test('un doigt ne déplace la carte qu’une fois zoomée', () => {
+  const container = document.createElement('div');
+  container.style.width = '600px';
+  document.body.appendChild(container);
+  renderCarte(container);
+  const svg = container.querySelector('.carte-svg');
+  const monde = container.querySelector('.carte-monde');
+  const r = svg.getBoundingClientRect();
+  const cx = r.left + r.width / 2;
+  const cy = r.top + r.height / 2;
+
+  // À plat, glisser le doigt laisse la page défiler : la carte ne bouge pas
+  const depart = monde.getAttribute('transform');
+  carteDoigt(svg, 'pointerdown', 1, cx, cy);
+  carteDoigt(svg, 'pointermove', 1, cx - 60, cy - 60);
+  assertEqual(monde.getAttribute('transform'), depart, 'la carte à plat ne devrait pas bouger');
+  carteDoigt(svg, 'pointerup', 1, cx - 60, cy - 60);
+
+  // Une fois zoomée, le même geste s'y promène
+  [...container.querySelectorAll('.carte-zoom-btn')].find(b => b.textContent === '+').click();
+  const zoome = monde.getAttribute('transform');
+  carteDoigt(svg, 'pointerdown', 1, cx, cy);
+  carteDoigt(svg, 'pointermove', 1, cx - 60, cy - 60);
+  assert(monde.getAttribute('transform') !== zoome, 'la carte zoomée devrait suivre le doigt');
+  assert(container.classList.contains('dragging'), 'le curseur devrait passer en « prise »');
+  carteDoigt(svg, 'pointerup', 1, cx - 60, cy - 60);
+  assert(!container.classList.contains('dragging'), 'doigt levé, plus de « prise »');
+  container.remove();
+});
+
 test('le bouton plein écran bascule la classe, et Échap en sort', () => {
   const container = document.createElement('div');
   document.body.appendChild(container);

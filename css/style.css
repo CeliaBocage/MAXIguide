@@ -1264,9 +1264,16 @@ section .actions {
 }
 
 .carte-svg {
-  /* Le défilement vertical de la page reste au doigt ; le déplacement de la
-     carte se fait à l'horizontale, et le zoom par les boutons. */
+  /* Tant que la carte n'est pas zoomée, un doigt fait défiler la page ; le
+     pincement à deux doigts, lui, est toujours pour la carte (js/carte.js). */
   touch-action: pan-y;
+}
+
+/* Zoomée, la carte prend le doigt pour elle : on s'y promène dans tous les
+   sens. Le bouton ⤢ la remet à plat et rend le défilement à la page. */
+.carte-wrap.zoomed .carte-svg,
+.carte-wrap.carte-plein .carte-svg {
+  touch-action: none;
 }
 
 .carte-wrap.zoomed .carte-svg {

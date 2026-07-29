@@ -7,8 +7,9 @@
 //     (facultatif — score : note moyenne sur 5, affichée à côté du nom),
 //   onClick(domaine) (facultatif — rend les domaines cliquables),
 // })
-// La carte se zoome et se déplace : les noms sont recalculés à chaque
-// changement de vue, donc zoomer fait apparaître ceux qui ne tenaient pas.
+// La carte se zoome (pincement à deux doigts, molette + Ctrl, double-clic ou
+// boutons) et se déplace : les noms sont recalculés à chaque changement de vue,
+// donc zoomer fait apparaître ceux qui ne tenaient pas.
 //
 // Dépend de js/svg.js (svgEl), js/data/carte.js et js/data/paysage.js.
 
@@ -561,27 +562,90 @@ function carteInteractions(container, svg, vue, zoomVers, appliqueVue) {
     };
   };
 
-  let drag = null;
+  // Les doigts (ou le curseur) posés sur la carte, dans l'ordre d'arrivée.
+  // Un seul : on déplace la carte. Deux : on la pince pour zoomer.
+  const doigts = new Map();
+  let geste = null;
+
+  // Écart et milieu des deux doigts : c'est de leur écartement que vient le
+  // facteur de zoom, et le milieu est le point qui doit rester sous eux.
+  const pince = () => {
+    const [a, b] = [...doigts.values()];
+    return { cx: (a.x + b.x) / 2, cy: (a.y + b.y) / 2, d: Math.hypot(b.x - a.x, b.y - a.y) };
+  };
+
+  // Un doigt posé ou levé rouvre le geste sur ce qui reste : lever un doigt
+  // d'un pincement enchaîne donc sur un déplacement, sans saut.
+  function reprendGeste() {
+    if (doigts.size >= 2) {
+      const p = pince();
+      geste = { type: 'pince', d: p.d, cx: p.cx, cy: p.cy, k: vue.k, tx: vue.tx, ty: vue.ty };
+      container.classList.remove('dragging');
+    } else if (doigts.size === 1 && vue.k > 1) {
+      const [p] = doigts.values();
+      geste = { type: 'glisse', x: p.x, y: p.y, tx: vue.tx, ty: vue.ty };
+      container.classList.add('dragging');
+    } else {
+      geste = null; // à l'échelle 1, rien à déplacer
+      container.classList.remove('dragging');
+    }
+  }
+
   svg.addEventListener('pointerdown', (e) => {
-    if (vue.k === 1) return; // rien à déplacer tant qu'on n'a pas zoomé
-    drag = { ...enCadre(e), tx: vue.tx, ty: vue.ty, id: e.pointerId };
-    svg.setPointerCapture(e.pointerId);
-    container.classList.add('dragging');
+    if (doigts.size >= 2) return; // deux doigts suffisent, on ignore les suivants
+    doigts.set(e.pointerId, enCadre(e));
+    // La capture garde les mouvements pour la carte même si le doigt sort du
+    // cadre — mais un doigt déjà relâché la refuse, et ce n'est pas grave.
+    try { svg.setPointerCapture(e.pointerId); } catch { /* tant pis */ }
+    reprendGeste();
   });
+
   svg.addEventListener('pointermove', (e) => {
-    if (!drag || e.pointerId !== drag.id) return;
-    const p = enCadre(e);
-    vue.tx = drag.tx + (p.x - drag.x);
-    vue.ty = drag.ty + (p.y - drag.y);
+    if (!doigts.has(e.pointerId)) return;
+    doigts.set(e.pointerId, enCadre(e));
+    if (!geste) return;
+
+    if (geste.type === 'glisse') {
+      const p = doigts.get(e.pointerId);
+      vue.tx = geste.tx + (p.x - geste.x);
+      vue.ty = geste.ty + (p.y - geste.y);
+    } else if (doigts.size >= 2 && geste.d > 1) {
+      // Le point du monde qui était sous le milieu des doigts au début du
+      // pincement le reste : la carte grossit là où on la pince, et suit les
+      // doigts s'ils se déplacent en même temps.
+      const p = pince();
+      const k = Math.min(Math.max(geste.k * (p.d / geste.d), 1), CARTE_ZOOM_MAX);
+      vue.tx = p.cx - (geste.cx - geste.tx) * (k / geste.k);
+      vue.ty = p.cy - (geste.cy - geste.ty) * (k / geste.k);
+      vue.k = k;
+    } else {
+      return;
+    }
     appliqueVue();
   });
-  const finDrag = (e) => {
-    if (!drag || e.pointerId !== drag.id) return;
-    drag = null;
-    container.classList.remove('dragging');
+
+  const finDoigt = (e) => {
+    if (!doigts.delete(e.pointerId)) return;
+    if (svg.hasPointerCapture(e.pointerId)) svg.releasePointerCapture(e.pointerId);
+    reprendGeste();
   };
-  svg.addEventListener('pointerup', finDrag);
-  svg.addEventListener('pointercancel', finDrag);
+  svg.addEventListener('pointerup', finDoigt);
+  svg.addEventListener('pointercancel', finDoigt);
+
+  // Tant que la carte n'est pas zoomée, le doigt sert à défiler la page
+  // (touch-action: pan-y). À deux doigts, on reprend le geste au navigateur :
+  // sans ça il en ferait un défilement, jamais un pincement.
+  const gardePince = (e) => {
+    if (e.touches.length >= 2) e.preventDefault();
+  };
+  svg.addEventListener('touchstart', gardePince, { passive: false });
+  svg.addEventListener('touchmove', gardePince, { passive: false });
+
+  // Safari iOS a en plus ses propres événements de pincement, qui zoomeraient
+  // la page entière par-dessus la carte : on les lui refuse également.
+  const refuse = (e) => e.preventDefault();
+  svg.addEventListener('gesturestart', refuse, { passive: false });
+  svg.addEventListener('gesturechange', refuse, { passive: false });
 
   svg.addEventListener('dblclick', (e) => {
     const p = enCadre(e);
