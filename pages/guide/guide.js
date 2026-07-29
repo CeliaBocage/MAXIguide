@@ -50,13 +50,15 @@ async function renderGuide(userId) {
   content.hidden = false;
 
   // Son plan : ses stickers ❤️/⭐/perso posés sur les stands
-  renderPlan(document.getElementById('plan-container'), {
-    decorate: (domaine) => {
-      const fiche = ratings[domaine.id];
-      if (!fiche) return {};
-      return { done: true, badge: stickerString(fiche, persoEmoji) };
-    },
-  });
+  const decorateSes = (domaine) => {
+    const fiche = ratings[domaine.id];
+    if (!fiche) return {};
+    return { done: true, badge: stickerString(fiche, persoEmoji), score: carteScore([fiche]) };
+  };
+  renderPlan(document.getElementById('plan-container'), { decorate: decorateSes });
+
+  // Sa carte : les mêmes domaines, là où ils se trouvent vraiment
+  renderCarte(document.getElementById('carte-container'), { decorate: decorateSes });
 
   for (const domaine of rated) {
     const fiche = ratings[domaine.id];

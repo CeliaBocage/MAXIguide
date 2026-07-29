@@ -27,6 +27,8 @@ const I18N = (() => {
       'home.makeGuide': 'Faire mon guide',
       'home.viewGuides': 'Regarder les guides',
       'home.resumeAs': 'Reprendre en tant que {name}',
+      'home.carteTitle': '🗺️ La carte du vignoble',
+      'home.carteHint': 'Les domaines de la fête ne sortent pas de nulle part : voici où poussent vraiment leurs vignes, autour du Tarn et de la Vère — avec les notes du groupe posées dessus.',
 
       // Choix / création d'utilisateur
       'users.pageTitle': 'MAXIguide — Qui êtes-vous ?',
@@ -57,6 +59,8 @@ const I18N = (() => {
       'guide.selectPlaceholder': '— Choisir un invité —',
       'guide.planTitle': 'Son plan du parc',
       'guide.planHint': 'Ses ❤️, ⭐ et son sticker perso sont posés sur les stands.',
+      'guide.carteTitle': 'Sa carte du vignoble',
+      'guide.carteHint': 'Les domaines qu’il ou elle a notés, à l’endroit où ils se trouvent vraiment dans le Gaillacois.',
       'guide.cards': 'Ses fiches',
       'guide.empty': "Cet invité n'a encore rien noté.",
 
@@ -131,6 +135,8 @@ const I18N = (() => {
       'moy.coverage': 'Domaines couverts par le groupe',
       'moy.planTitle': 'Le plan moyen du groupe',
       'moy.planHint': 'Les stickers moyens du groupe sont posés sur chaque stand, et l’emoji de chaque participant passé par le stand s’affiche en dessous — les stands verts ont été notés au moins une fois.',
+      'moy.carteTitle': 'La carte du vignoble',
+      'moy.carteHint': 'Les mêmes notes, mais posées sur la vraie carte : plus la pastille est foncée, plus le domaine a plu au groupe.',
       'moy.usersTitle': 'Détail par participant',
       'moy.usersHint': 'Dépliez un participant pour voir toutes ses fiches.',
       'moy.domainesTitle': 'Détail par domaine',
@@ -165,6 +171,16 @@ const I18N = (() => {
       'plan.legendFood': 'Village gourmand',
       'plan.standTitle': 'Stand {stand} — {name}',
 
+      // Carte réelle du vignoble
+      'carte.aria': 'Carte du vignoble gaillacois — où se trouvent vraiment les domaines',
+      'carte.standTitle': 'Stand {stand} — {name} ({commune})',
+      'carte.legendTodo': 'Domaine pas encore noté',
+      'carte.legendRated': 'Domaine noté — la couleur donne la note moyenne',
+      'carte.legendRiver': 'Rivière',
+      'carte.legendVillage': 'Village',
+      'carte.scale': '{n} km',
+      'carte.credits': 'Domaines : annuaire des Vins de Gaillac · Fond de carte : © contributeurs OpenStreetMap',
+
       // Erreurs base de données
       'db.notConfigured': "Base non configurée : copiez secrets/config.example.js en secrets/config.js et remplissez l'URL et le token Turso.",
       'db.http': 'Erreur Turso : HTTP {status}',
@@ -193,6 +209,8 @@ const I18N = (() => {
       'home.makeGuide': 'Build my guide',
       'home.viewGuides': 'Browse the guides',
       'home.resumeAs': 'Continue as {name}',
+      'home.carteTitle': '🗺️ The vineyard map',
+      'home.carteHint': "The festival's wineries come from somewhere: here is where their vines actually grow, along the Tarn and the Vère — with the group's ratings on top.",
 
       // User selection / creation
       'users.pageTitle': 'MAXIguide — Who are you?',
@@ -223,6 +241,8 @@ const I18N = (() => {
       'guide.selectPlaceholder': '— Pick a guest —',
       'guide.planTitle': 'Their park map',
       'guide.planHint': 'Their ❤️, ⭐ and personal sticker are placed on the stands.',
+      'guide.carteTitle': 'Their vineyard map',
+      'guide.carteHint': 'The wineries they rated, shown where they really sit in the Gaillac countryside.',
       'guide.cards': 'Their tasting cards',
       'guide.empty': "This guest hasn't rated anything yet.",
 
@@ -297,6 +317,8 @@ const I18N = (() => {
       'moy.coverage': 'Wineries covered by the group',
       'moy.planTitle': "The group's average map",
       'moy.planHint': "The group's average stickers are placed on each stand, with the emoji of every participant who visited it shown below — green stands have been rated at least once.",
+      'moy.carteTitle': 'The vineyard map',
+      'moy.carteHint': 'The same ratings, placed on the real map: the darker the dot, the more the group enjoyed that winery.',
       'moy.usersTitle': 'Breakdown by participant',
       'moy.usersHint': 'Expand a participant to see all their cards.',
       'moy.domainesTitle': 'Breakdown by winery',
@@ -330,6 +352,16 @@ const I18N = (() => {
       'plan.legendAnim': 'Activities',
       'plan.legendFood': 'Food village',
       'plan.standTitle': 'Stand {stand} — {name}',
+
+      // Real vineyard map
+      'carte.aria': 'Map of the Gaillac vineyard — where the wineries really are',
+      'carte.standTitle': 'Stand {stand} — {name} ({commune})',
+      'carte.legendTodo': 'Winery not rated yet',
+      'carte.legendRated': 'Rated winery — the colour shows the average rating',
+      'carte.legendRiver': 'River',
+      'carte.legendVillage': 'Village',
+      'carte.scale': '{n} km',
+      'carte.credits': 'Wineries: Vins de Gaillac directory · Base map: © OpenStreetMap contributors',
 
       // Database errors
       'db.notConfigured': 'Database not configured: copy secrets/config.example.js to secrets/config.js and fill in the Turso URL and token.',

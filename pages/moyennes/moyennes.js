@@ -102,17 +102,20 @@ async function main() {
 
   // Plan moyen : les stickers moyens du groupe (arrondis) posés sur chaque stand,
   // et l'emoji de chaque participant passé par le stand affiché en dessous
-  renderPlan(document.getElementById('plan-container'), {
-    decorate: (domaine) => {
-      const rows = byDomaine.get(domaine.id);
-      if (!rows.length) return {};
-      const badge = '❤️'.repeat(Math.round(avgOf(rows, 'coeur')))
-        + '⭐'.repeat(Math.round(avgOf(rows, 'etoile')))
-        + '✨'.repeat(Math.round(avgOf(rows, 'perso')));
-      const guides = rows.map(r => r.user_emoji || '✨');
-      return { done: true, badge, guides };
-    },
-  });
+  const decorateGroupe = (domaine) => {
+    const rows = byDomaine.get(domaine.id);
+    if (!rows.length) return {};
+    const badge = '❤️'.repeat(Math.round(avgOf(rows, 'coeur')))
+      + '⭐'.repeat(Math.round(avgOf(rows, 'etoile')))
+      + '✨'.repeat(Math.round(avgOf(rows, 'perso')));
+    const guides = rows.map(r => r.user_emoji || '✨');
+    return { done: true, badge, guides, score: carteScore(rows) };
+  };
+  renderPlan(document.getElementById('plan-container'), { decorate: decorateGroupe });
+
+  // Même chose, mais sur la carte réelle du vignoble : la pastille de chaque
+  // domaine se teinte selon la note moyenne que le groupe lui a donnée.
+  renderCarte(document.getElementById('carte-container'), { decorate: decorateGroupe });
 
   // Détail par participant : un menu déroulant par personne, avec toutes ses fiches
   const usersAcc = document.getElementById('users-acc');

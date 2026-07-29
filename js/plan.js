@@ -4,14 +4,7 @@
 //     guides : l'emoji de chaque participant passé par le stand, affiché sous le rond),
 //   onClick(domaine) (facultatif — rend les stands cliquables),
 // })
-const SVG_NS = 'http://www.w3.org/2000/svg';
-
-function svgEl(tag, attrs = {}, textContent) {
-  const el = document.createElementNS(SVG_NS, tag);
-  for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
-  if (textContent !== undefined) el.textContent = textContent;
-  return el;
-}
+// Dépend de js/svg.js (svgEl), à charger avant.
 
 function planZone(g, { x, y, w, h, fill, label, vertical, fontSize = 15, color = '#fff' }) {
   g.appendChild(svgEl('rect', { x, y, width: w, height: h, rx: 8, fill }));

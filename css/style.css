@@ -1182,3 +1182,119 @@ section .actions {
   stroke: #fff;
   stroke-width: 2;
 }
+
+/* --- Carte réelle du vignoble (SVG) --- */
+.carte-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.carte-water {
+  fill: none;
+  stroke: #a9cfe0;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.carte-water.main {
+  stroke: #7fb6d1;
+  stroke-width: 5.5;
+}
+
+.carte-river-label {
+  fill: #4f8ba7;
+  font-size: 14px;
+  font-style: italic;
+  paint-order: stroke;
+  stroke: #eef3e6;
+  stroke-width: 3;
+}
+
+.carte-place-dot {
+  fill: #a8a294;
+}
+
+.carte-place-dot.town {
+  fill: #6b6355;
+}
+
+.carte-place-label {
+  fill: #7a7264;
+  font-size: 13px;
+  paint-order: stroke;
+  stroke: #eef3e6;
+  stroke-width: 3;
+}
+
+.carte-place-label.town {
+  fill: #4a443a;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* Fil qui relie une pastille écartée à l'emplacement réel du domaine */
+.carte-leader {
+  stroke: #a8a294;
+  stroke-width: 1.2;
+  stroke-dasharray: 3 3;
+}
+
+.carte-anchor {
+  fill: #8a8578;
+}
+
+.carte-stand circle {
+  fill: #fff;
+  stroke: #e63946;
+  stroke-width: 3;
+}
+
+.carte-stand .stand-num {
+  fill: #e63946;
+}
+
+.carte-stand.done circle {
+  fill: #7cb518;
+  stroke: #5c8a0e;
+}
+
+.carte-stand.done .stand-num {
+  fill: #fff;
+}
+
+.carte-stand.clickable {
+  cursor: pointer;
+}
+
+.carte-stand.clickable:hover circle {
+  stroke-width: 5;
+}
+
+.carte-key-todo {
+  fill: #fff;
+  stroke: #e63946;
+  stroke-width: 3;
+}
+
+.carte-legend-label {
+  font-size: 15px;
+  font-weight: 600;
+  fill: #2b2b2b;
+}
+
+.carte-legend-tick {
+  font-size: 13px;
+  fill: #6b6355;
+}
+
+.carte-scalebar {
+  stroke: #4a443a;
+  stroke-width: 2;
+}
+
+.carte-credits {
+  font-size: 12px;
+  fill: #8a8578;
+}

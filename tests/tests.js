@@ -384,6 +384,97 @@ test('getCurrentUser retombe sur le cache local quand le réseau manque', async 
   assertEqual(user, { id: 'u1', name: 'Célia' }, 'le profil connu doit revenir du cache');
 });
 
+// --- Carte réelle du vignoble ---
+
+test('chaque domaine a une position réelle, à l’intérieur du cadre de la carte', () => {
+  const missing = DOMAINES.filter(d => !CARTE_DOMAINES[d.id]).map(d => d.id);
+  assertEqual(missing, [], 'des domaines sans coordonnées');
+
+  const outside = Object.entries(CARTE_DOMAINES)
+    .filter(([, g]) => g.lon < CARTE_BOUNDS.minLon || g.lon > CARTE_BOUNDS.maxLon
+      || g.lat < CARTE_BOUNDS.minLat || g.lat > CARTE_BOUNDS.maxLat)
+    .map(([id]) => id);
+  assertEqual(outside, [], 'des domaines tombent hors du cadre');
+});
+
+test('la carte ne connaît que des domaines qui existent vraiment', () => {
+  const ids = new Set(DOMAINES.map(d => d.id));
+  const unknown = Object.keys(CARTE_DOMAINES).filter(id => !ids.has(id));
+  assertEqual(unknown, [], 'des positions ne correspondent à aucun domaine');
+});
+
+test('la projection met le nord-ouest en haut à gauche et le sud-est en bas à droite', () => {
+  const nw = carteProject(CARTE_BOUNDS.minLon, CARTE_BOUNDS.maxLat);
+  const se = carteProject(CARTE_BOUNDS.maxLon, CARTE_BOUNDS.minLat);
+  assert(Math.abs(nw.x) < 0.001 && Math.abs(nw.y) < 0.001, `coin nord-ouest en ${nw.x},${nw.y}`);
+  assert(Math.abs(se.x - CARTE_VIEW.width) < 0.001, `bord est en ${se.x}`);
+  assert(Math.abs(se.y - CARTE_VIEW.height) < 0.001, `bord sud en ${se.y}`);
+});
+
+test('les rivières vont d’ouest en est (sinon leur nom s’écrirait à l’envers)', () => {
+  const backwards = CARTE_RIVERS
+    .filter(r => r.pts[0][0] > r.pts[r.pts.length - 1][0])
+    .map(r => r.name);
+  assertEqual(backwards, [], 'des tracés remontent vers l’ouest');
+});
+
+test('carteScore fait la moyenne de toutes les boissons notées', () => {
+  assertEqual(carteScore([{ note_blanc: 4, note_rouge: 2 }]), 3);
+  // Deux fiches, quatre notes : (5+3+1+3)/4
+  assertEqual(carteScore([{ note_blanc: 5, note_rouge: 3 }, { note_rose: 1, note_jus: 3 }]), 3);
+});
+
+test('carteScore vaut null quand personne n’a noté de boisson', () => {
+  assertEqual(carteScore([]), null);
+  assertEqual(carteScore([{ coeur: 2, etoile: 1, commentaire: 'sympa' }]), null,
+    'les stickers seuls ne font pas une note');
+});
+
+test('la couleur de la pastille suit la note, du plus pâle au plus foncé', () => {
+  const fills = [1, 2, 3, 4, 5].map(n => carteScoreColors(n).fill);
+  assertEqual(new Set(fills).size, 5, 'cinq notes doivent donner cinq teintes');
+  assertEqual(carteScoreColors(1.4).fill, carteScoreColors(1).fill, '1,4 reste dans le premier palier');
+});
+
+test('carteSpread sépare deux domaines à la même adresse', () => {
+  const nodes = [
+    { ax: 400, ay: 400, x: 400, y: 400 },
+    { ax: 400, ay: 400, x: 400, y: 400 },
+  ];
+  carteSpread(nodes, { gap: 27, width: 900, height: 900, margin: { left: 10, right: 10, top: 10, bottom: 10 } });
+  const dist = Math.hypot(nodes[0].x - nodes[1].x, nodes[0].y - nodes[1].y);
+  assert(dist > 20, `les deux pastilles se chevauchent encore (${dist.toFixed(1)} px)`);
+  // …sans les envoyer à l'autre bout de la carte
+  assert(Math.hypot(nodes[0].x - 400, nodes[0].y - 400) < 40, 'la pastille a trop dérivé');
+});
+
+test('carteSpread laisse tranquille un domaine isolé', () => {
+  const nodes = [{ ax: 300, ay: 500, x: 300, y: 500 }];
+  carteSpread(nodes, { gap: 27, width: 900, height: 900, margin: { left: 10, right: 10, top: 10, bottom: 10 } });
+  assert(Math.hypot(nodes[0].x - 300, nodes[0].y - 500) < 0.5, 'la pastille a bougé sans raison');
+});
+
+test('renderCarte dessine une pastille par domaine, notée ou non', () => {
+  const container = document.createElement('div');
+  renderCarte(container, {
+    decorate: (d) => (d.stand === '2' ? { done: true, badge: '❤️', score: 4.2 } : {}),
+  });
+  const stands = container.querySelectorAll('.carte-stand');
+  assertEqual(stands.length, DOMAINES.length, 'il manque des domaines sur la carte');
+  assertEqual(container.querySelectorAll('.carte-stand.done').length, 1);
+  assert(container.querySelector('.carte-svg'), 'pas de SVG produit');
+});
+
+test('renderCarte ne rend cliquable que si on lui donne un onClick', () => {
+  const plain = document.createElement('div');
+  renderCarte(plain);
+  assertEqual(plain.querySelectorAll('.carte-stand.clickable').length, 0);
+
+  const clickable = document.createElement('div');
+  renderCarte(clickable, { onClick: () => {} });
+  assertEqual(clickable.querySelectorAll('.carte-stand.clickable').length, DOMAINES.length);
+});
+
 // --- Exécution ---
 
 (async () => {
