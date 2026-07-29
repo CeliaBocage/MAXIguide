@@ -463,10 +463,9 @@ function renderCarte(container, { decorate, onClick } = {}) {
 }
 
 // --- La liste des domaines ------------------------------------------------
-// Sans accents ni casse, pour que « romeli » trouve « Roméli »
-function carteSansAccent(s) {
-  return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-}
+// La normalisation des recherches est partagée avec le reste de l'appli :
+// cleRecherche() vit dans i18n.js — sans accents ni casse, pour que
+// « romeli » trouve « Roméli ».
 
 function carteListe(domaines, onPick) {
   const el = document.createElement('div');
@@ -529,11 +528,11 @@ function carteListe(domaines, onPick) {
     ul.appendChild(li);
     // On cherche aussi sur le nom complet et la commune : « château » ou
     // « Cahuzac » doivent ramener quelque chose.
-    lignes.push({ li, btn, cle: carteSansAccent(`${n.geo.court} ${n.domaine.name} ${n.geo.commune}`) });
+    lignes.push({ li, btn, cle: cleRecherche(`${n.geo.court} ${n.domaine.name} ${n.geo.commune}`) });
   }
 
   search.addEventListener('input', () => {
-    const q = carteSansAccent(search.value.trim());
+    const q = cleRecherche(search.value);
     let visibles = 0;
     for (const l of lignes) {
       const ok = !q || l.cle.includes(q);

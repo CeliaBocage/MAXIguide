@@ -573,6 +573,31 @@ test('le bouton plein écran bascule la classe, et Échap en sort', () => {
   container.remove();
 });
 
+// --- La normalisation des recherches (partagée liste + carte) ---
+
+test('cleRecherche ignore accents, casse et apostrophes', () => {
+  assertEqual(cleRecherche('Château Lastours'), 'chateau lastours');
+  assertEqual(cleRecherche('Roméli'), 'romeli');
+  assertEqual(cleRecherche('CAHUZAC-SUR-VÈRE'), 'cahuzac-sur-vere');
+  // Les trois apostrophes possibles donnent la même clé, espace comprise :
+  // c'est ce qui fait que « mas d aurel » trouve « Mas d'Aurel ».
+  assertEqual(cleRecherche("Mas d'Aurel"), 'mas d aurel');
+  assertEqual(cleRecherche('Mas d’Aurel'), 'mas d aurel');
+  assertEqual(cleRecherche('  MAS   D  AUREL  '), 'mas d aurel');
+});
+
+test('chaque domaine est trouvable par son nom et par son n° de stand', () => {
+  // La liste de la page domaines cherche sur « stand + nom » : deux domaines
+  // ne doivent pas se marcher dessus, et chaque n° doit être discriminant.
+  const cles = DOMAINES.map(d => cleRecherche(`${d.stand} ${d.name}`));
+  assertEqual(new Set(cles).size, DOMAINES.length, 'deux domaines ont la même clé de recherche');
+
+  for (const d of DOMAINES) {
+    const parNom = cles.filter(c => c.includes(cleRecherche(d.name)));
+    assertEqual(parNom.length, 1, `« ${d.name} » ne ramène pas exactement un domaine`);
+  }
+});
+
 // --- La liste des domaines ---
 
 test('la liste propose les 51 domaines, triés par nom', () => {

@@ -15,12 +15,18 @@
 
     <section id="view-list">
       <h2 data-i18n="domaines.heading">Les domaines</h2>
+      <input type="search" id="list-search" class="list-search"
+             data-i18n-placeholder="domaines.searchPlaceholder"
+             placeholder="Chercher un domaine ou un n° de stand…">
       <div id="list-filters" class="list-filters">
         <!-- chips Tous / À déguster / Notés remplies par domaines.js -->
       </div>
       <ul id="domaine-list" class="domaine-list">
         <!-- rempli par domaines.js -->
       </ul>
+      <p id="list-empty" class="list-empty muted" data-i18n="domaines.searchEmpty" hidden>
+        Aucun domaine ne correspond.
+      </p>
     </section>
 
     <section id="view-plan" hidden>

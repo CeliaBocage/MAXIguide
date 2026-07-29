@@ -4,6 +4,8 @@ const viewList = document.getElementById('view-list');
 const viewPlan = document.getElementById('view-plan');
 const toggleList = document.getElementById('toggle-list');
 const togglePlan = document.getElementById('toggle-plan');
+const searchEl = document.getElementById('list-search');
+const emptyEl = document.getElementById('list-empty');
 
 function showView(view) {
   viewList.hidden = view !== 'list';
@@ -14,6 +16,25 @@ function showView(view) {
 
 toggleList.addEventListener('click', () => showView('list'));
 togglePlan.addEventListener('click', () => showView('plan'));
+
+// La barre de recherche et les chips se combinent : un seul endroit décide
+// quelles lignes restent visibles.
+let filtreActif = 'all';
+
+function refreshList() {
+  const q = cleRecherche(searchEl.value);
+  let visibles = 0;
+  for (const li of listEl.children) {
+    const ok = (filtreActif === 'all' || li.dataset.status === filtreActif)
+      && (!q || li.dataset.search.includes(q));
+    li.hidden = !ok;
+    if (ok) visibles++;
+  }
+  emptyEl.hidden = visibles > 0;
+}
+
+searchEl.setAttribute('aria-label', t('domaines.searchPlaceholder'));
+searchEl.addEventListener('input', refreshList);
 
 // Chips de filtre au-dessus de la liste : idéal pour repérer d'un coup d'œil
 // ce qu'il reste à déguster.
@@ -27,12 +48,11 @@ function renderFilters(ratings) {
   ];
 
   const apply = (key) => {
+    filtreActif = key;
     for (const btn of filtersEl.children) {
       btn.classList.toggle('active', btn.dataset.filter === key);
     }
-    for (const li of listEl.children) {
-      li.hidden = key !== 'all' && li.dataset.status !== key;
-    }
+    refreshList();
   };
 
   filtersEl.replaceChildren();
@@ -58,6 +78,9 @@ async function main() {
   for (const domaine of DOMAINES) {
     const li = document.createElement('li');
     li.dataset.status = ratings[domaine.id] ? 'done' : 'todo';
+    // On cherche sur le n° de stand et le nom : « 27 » comme « mas d'aurel »
+    // doivent ramener le bon domaine.
+    li.dataset.search = cleRecherche(`${domaine.stand} ${domaine.name}`);
     const link = document.createElement('a');
     link.className = 'domaine-card';
     link.href = `../notation/index.html?domaine=${encodeURIComponent(domaine.id)}`;

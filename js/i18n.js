@@ -77,6 +77,8 @@ const I18N = (() => {
       'domaines.filterAll': 'Tous',
       'domaines.filterTodo': 'À déguster',
       'domaines.filterDone': 'Notés',
+      'domaines.searchPlaceholder': 'Chercher un domaine ou un n° de stand…',
+      'domaines.searchEmpty': 'Aucun domaine ne correspond.',
 
       // Page notation
       'notation.pageTitle': 'MAXIguide — Notation',
@@ -276,6 +278,8 @@ const I18N = (() => {
       'domaines.filterAll': 'All',
       'domaines.filterTodo': 'To taste',
       'domaines.filterDone': 'Rated',
+      'domaines.searchPlaceholder': 'Search a winery or a stand no.…',
+      'domaines.searchEmpty': 'No winery matches.',
 
       // Rating page
       'notation.pageTitle': 'MAXIguide — Rating',
@@ -417,6 +421,20 @@ const I18N = (() => {
     return str;
   }
 
+  // Ramène un texte à une clé comparable, pour toutes les recherches de
+  // l'appli (liste des domaines, liste de la carte). On enlève les accents et
+  // la casse, et les apostrophes — droites, courbes, celles que posent les
+  // claviers de téléphone — valent une espace. Résultat : « chateau lastour »
+  // trouve « Château Lastours », et « mas d aurel » comme « mas d’aurel »
+  // trouvent « Mas d'Aurel ».
+  function cleRecherche(s) {
+    return s.normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .replace(/['’`\s]+/g, ' ')
+      .trim();
+  }
+
   // Traduit les textes statiques du HTML
   function apply(root = document) {
     for (const el of root.querySelectorAll('[data-i18n]')) {
@@ -451,8 +469,9 @@ const I18N = (() => {
     }
   });
 
-  return { get lang() { return lang; }, t, apply, makeToggle };
+  return { get lang() { return lang; }, t, apply, makeToggle, cleRecherche };
 })();
 
-// Raccourci global
+// Raccourcis globaux
 const t = I18N.t;
+const cleRecherche = I18N.cleRecherche;
