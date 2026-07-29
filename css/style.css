@@ -1184,10 +1184,55 @@ section .actions {
 }
 
 /* --- Carte réelle du vignoble (SVG) --- */
+.carte-wrap {
+  position: relative;
+}
+
 .carte-svg {
   width: 100%;
   height: auto;
   display: block;
+  /* Le défilement vertical de la page reste au doigt ; le déplacement de la
+     carte se fait à l'horizontale, et le zoom par les boutons. */
+  touch-action: pan-y;
+}
+
+.carte-wrap.zoomed .carte-svg {
+  cursor: grab;
+}
+
+.carte-wrap.dragging .carte-svg {
+  cursor: grabbing;
+}
+
+/* Boutons de zoom, posés dans le coin de la carte */
+.carte-controls {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.carte-zoom-btn {
+  width: 2rem;
+  height: 2rem;
+  border: 1px solid #d8d0c2;
+  border-radius: 8px;
+  background: rgba(255, 253, 245, 0.92);
+  color: var(--text);
+  font-size: 1.05rem;
+  font-family: inherit;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+}
+
+.carte-zoom-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 /* Le paysage réel, du fond vers la surface : campagne, bois, vignes,
@@ -1200,16 +1245,17 @@ section .actions {
   fill: #bed3ac;
 }
 
-/* Teinte « vigne » par défaut ; les parcelles autour d'un domaine noté
-   reçoivent la couleur de sa note en style inline (js/carte.js). */
-.carte-vignes path {
-  fill: #d8c6e2;
-  stroke: #bfa6cd;
+/* Teinte neutre : parcelle sans domaine assez proche. Les autres reçoivent la
+   couleur de leur domaine en style inline (js/carte.js). */
+.carte-vignes path,
+.carte-vignes-key.neutre {
+  fill: #cdc3b0;
+  stroke: #b3a794;
   stroke-width: 0.5;
 }
 
 .carte-villages path {
-  fill: #e7ddcb;
+  fill: #eae3d6;
 }
 
 .carte-eau path {
@@ -1249,7 +1295,7 @@ section .actions {
 
 .carte-place-label {
   fill: #6b6355;
-  font-size: 13px;
+  font-size: 12px;
   paint-order: stroke;
   stroke: #fffdf5;
   stroke-width: 3.5;
@@ -1257,59 +1303,44 @@ section .actions {
 
 .carte-place-label.town {
   fill: #3a352d;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   stroke-width: 4;
 }
 
-/* Liseré clair sous chaque pastille, pour la détacher des parcelles */
-.carte-halo {
-  fill: #fffdf5;
-  opacity: 0.85;
+/* Un domaine : un point à sa couleur, son nom à côté */
+.carte-dom-dot {
+  stroke-width: 2;
 }
 
-/* Fil qui relie une pastille écartée à l'emplacement réel du domaine */
-.carte-leader {
-  stroke: #a8a294;
-  stroke-width: 1.2;
-  stroke-dasharray: 3 3;
+.carte-dom-label {
+  font-size: 11px;
+  font-weight: 600;
+  paint-order: stroke;
+  stroke: #fffdf5;
+  stroke-width: 3.5;
 }
 
-.carte-anchor {
-  fill: #8a8578;
+.carte-dom-label.done {
+  font-size: 11.5px;
+  font-weight: 700;
 }
 
-.carte-stand .stand-dot {
-  fill: #fff;
-  stroke: #e63946;
-  stroke-width: 3;
+.carte-dom-score {
+  font-weight: 700;
+  opacity: 0.75;
 }
 
-.carte-stand .stand-num {
-  fill: #e63946;
-}
-
-.carte-stand.done .stand-dot {
-  fill: #7cb518;
-  stroke: #5c8a0e;
-}
-
-.carte-stand.done .stand-num {
-  fill: #fff;
-}
-
-.carte-stand.clickable {
+.carte-dom.clickable {
   cursor: pointer;
 }
 
-.carte-stand.clickable:hover .stand-dot {
-  stroke-width: 5;
+.carte-dom.clickable:hover .carte-dom-dot {
+  stroke-width: 4;
 }
 
-.carte-key-todo {
-  fill: #fff;
-  stroke: #e63946;
-  stroke-width: 3;
+.carte-dom.clickable:hover .carte-dom-label {
+  text-decoration: underline;
 }
 
 .carte-legend-label {
@@ -1318,7 +1349,7 @@ section .actions {
   fill: #2b2b2b;
 }
 
-.carte-legend-tick {
+.carte-legend-hint {
   font-size: 13px;
   fill: #6b6355;
 }

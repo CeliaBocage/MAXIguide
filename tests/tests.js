@@ -403,6 +403,13 @@ test('la carte ne connaît que des domaines qui existent vraiment', () => {
   assertEqual(unknown, [], 'des positions ne correspondent à aucun domaine');
 });
 
+test('chaque domaine a un nom court à afficher sur la carte', () => {
+  const sans = Object.entries(CARTE_DOMAINES)
+    .filter(([, g]) => !g.court || g.court.length > 22)
+    .map(([id]) => id);
+  assertEqual(sans, [], 'nom court manquant ou trop long pour tenir sur la carte');
+});
+
 test('la projection met le nord-ouest en haut à gauche et le sud-est en bas à droite', () => {
   const nw = carteProject(CARTE_BOUNDS.minLon, CARTE_BOUNDS.maxLat);
   const se = carteProject(CARTE_BOUNDS.maxLon, CARTE_BOUNDS.minLat);
@@ -418,6 +425,54 @@ test('les rivières vont d’ouest en est (sinon leur nom s’écrirait à l’e
   assertEqual(backwards, [], 'des tracés remontent vers l’ouest');
 });
 
+test('chaque rivière un peu longue trouve où écrire son nom', () => {
+  const sansNom = CARTE_RIVERS
+    .filter((r, i) => r.pts.length > 12 && !CARTE_RIVER_SPOTS[i])
+    .map(r => r.name);
+  assertEqual(sansNom, [], 'des rivières restent anonymes');
+});
+
+// --- Une couleur par domaine ---
+
+test('deux domaines voisins n’ont jamais la même couleur', () => {
+  const ids = Object.keys(CARTE_DOMAINES);
+  const kx = 111 * Math.cos(43.92 * Math.PI / 180);
+  let closest = { km: Infinity };
+  for (let i = 0; i < ids.length; i++) {
+    for (let j = i + 1; j < ids.length; j++) {
+      const a = CARTE_DOMAINES[ids[i]];
+      const b = CARTE_DOMAINES[ids[j]];
+      if (a.couleur !== b.couleur) continue;
+      const km = Math.hypot((a.lon - b.lon) * kx, (a.lat - b.lat) * 111);
+      if (km < closest.km) closest = { km, a: ids[i], b: ids[j] };
+    }
+  }
+  assert(closest.km > 3, `${closest.a} et ${closest.b} partagent une couleur à ${closest.km.toFixed(1)} km`);
+});
+
+test('toutes les couleurs pointent vers une teinte de la palette', () => {
+  const hors = Object.entries(CARTE_DOMAINES)
+    .filter(([, g]) => !Number.isInteger(g.couleur) || g.couleur < 0 || g.couleur >= CARTE_PALETTE.length)
+    .map(([id]) => id);
+  assertEqual(hors, [], 'indice de couleur invalide');
+  for (const id of Object.keys(CARTE_DOMAINES)) {
+    assert(cartePalette(id).ink, `pas de teinte pour ${id}`);
+  }
+});
+
+test('chaque parcelle de vigne est rattachée à un domaine connu, ou à aucun', () => {
+  assertEqual(PAYSAGE_VIGNES_OWNER.length, PAYSAGE_VIGNES.length,
+    'il manque des rattachements de parcelles');
+  const ids = new Set(Object.keys(CARTE_DOMAINES));
+  const mauvais = PAYSAGE_VIGNES_OWNER.filter(o =>
+    o !== -1 && !ids.has(PAYSAGE_VIGNES_DOMAINES[o]));
+  assertEqual(mauvais, [], 'des parcelles pointent vers un domaine inconnu');
+  assert(PAYSAGE_VIGNES_OWNER.some(o => o >= 0), 'aucune parcelle rattachée');
+  assert(PAYSAGE_VIGNES_OWNER.some(o => o === -1), 'toutes les parcelles rattachées, c’est suspect');
+});
+
+// --- Notes ---
+
 test('carteScore fait la moyenne de toutes les boissons notées', () => {
   assertEqual(carteScore([{ note_blanc: 4, note_rouge: 2 }]), 3);
   // Deux fiches, quatre notes : (5+3+1+3)/4
@@ -430,49 +485,74 @@ test('carteScore vaut null quand personne n’a noté de boisson', () => {
     'les stickers seuls ne font pas une note');
 });
 
-test('la couleur de la pastille suit la note, du plus pâle au plus foncé', () => {
-  const fills = [1, 2, 3, 4, 5].map(n => carteScoreColors(n).fill);
-  assertEqual(new Set(fills).size, 5, 'cinq notes doivent donner cinq teintes');
-  assertEqual(carteScoreColors(1.4).fill, carteScoreColors(1).fill, '1,4 reste dans le premier palier');
+// --- Placement des étiquettes ---
+
+test('une étiquette se range à côté de son point quand la place est libre', () => {
+  const occupied = [];
+  const frame = { x1: 0, y1: 0, x2: 900, y2: 900 };
+  const spot = cartePlaceLabel('Vayssette', { x: 400, y: 400 }, 11, occupied, frame);
+  assert(spot, 'aucune place trouvée sur une carte vide');
+  assertEqual(occupied.length, 1, 'la place prise doit être réservée');
 });
 
-test('carteSpread sépare deux domaines à la même adresse', () => {
-  const nodes = [
-    { ax: 400, ay: 400, x: 400, y: 400 },
-    { ax: 400, ay: 400, x: 400, y: 400 },
-  ];
-  carteSpread(nodes, { gap: 27, width: 900, height: 900, margin: { left: 10, right: 10, top: 10, bottom: 10 } });
-  const dist = Math.hypot(nodes[0].x - nodes[1].x, nodes[0].y - nodes[1].y);
-  assert(dist > 20, `les deux pastilles se chevauchent encore (${dist.toFixed(1)} px)`);
-  // …sans les envoyer à l'autre bout de la carte
-  assert(Math.hypot(nodes[0].x - 400, nodes[0].y - 400) < 40, 'la pastille a trop dérivé');
+test('une étiquette cède la place à celles déjà posées', () => {
+  const frame = { x1: 0, y1: 0, x2: 900, y2: 900 };
+  const occupied = [];
+  const premier = cartePlaceLabel('Vayssette', { x: 400, y: 400 }, 11, occupied, frame);
+  const second = cartePlaceLabel('Vayssette', { x: 400, y: 400 }, 11, occupied, frame);
+  assert(second, 'la seconde étiquette doit trouver un autre côté');
+  assert(premier.x !== second.x || premier.y !== second.y, 'les deux se superposent');
 });
 
-test('carteSpread laisse tranquille un domaine isolé', () => {
-  const nodes = [{ ax: 300, ay: 500, x: 300, y: 500 }];
-  carteSpread(nodes, { gap: 27, width: 900, height: 900, margin: { left: 10, right: 10, top: 10, bottom: 10 } });
-  assert(Math.hypot(nodes[0].x - 300, nodes[0].y - 500) < 0.5, 'la pastille a bougé sans raison');
+test('pas d’étiquette plutôt qu’une étiquette illisible quand tout est pris', () => {
+  const frame = { x1: 0, y1: 0, x2: 900, y2: 900 };
+  // Tout le voisinage est déjà occupé
+  const occupied = [{ x1: 200, y1: 200, x2: 600, y2: 600 }];
+  const spot = cartePlaceLabel('Vayssette', { x: 400, y: 400 }, 11, occupied, frame);
+  assertEqual(spot, null, 'une étiquette a été posée sur une zone occupée');
 });
 
-test('renderCarte dessine une pastille par domaine, notée ou non', () => {
+test('une étiquette ne déborde jamais du cadre', () => {
+  // « Croix des Marchands » fait une centaine de pixels : aucun placement ne
+  // tient dans un cadre de 80 de large, quelle que soit la hauteur.
+  const frame = { x1: 0, y1: 0, x2: 80, y2: 400 };
+  const spot = cartePlaceLabel('Croix des Marchands', { x: 40, y: 200 }, 11, [], frame);
+  assertEqual(spot, null, 'un nom trop large pour le cadre a quand même été posé');
+});
+
+// --- Rendu ---
+
+test('renderCarte pose un point par domaine, noté ou non', () => {
   const container = document.createElement('div');
   renderCarte(container, {
     decorate: (d) => (d.stand === '2' ? { done: true, badge: '❤️', score: 4.2 } : {}),
   });
-  const stands = container.querySelectorAll('.carte-stand');
-  assertEqual(stands.length, DOMAINES.length, 'il manque des domaines sur la carte');
-  assertEqual(container.querySelectorAll('.carte-stand.done').length, 1);
+  assertEqual(container.querySelectorAll('.carte-dom').length, DOMAINES.length,
+    'il manque des domaines sur la carte');
+  assertEqual(container.querySelectorAll('.carte-dom.done').length, 1);
   assert(container.querySelector('.carte-svg'), 'pas de SVG produit');
+});
+
+test('renderCarte dessine toutes les parcelles de vigne', () => {
+  const container = document.createElement('div');
+  renderCarte(container);
+  assertEqual(container.querySelectorAll('.carte-vignes path').length, PAYSAGE_VIGNES.length);
 });
 
 test('renderCarte ne rend cliquable que si on lui donne un onClick', () => {
   const plain = document.createElement('div');
   renderCarte(plain);
-  assertEqual(plain.querySelectorAll('.carte-stand.clickable').length, 0);
+  assertEqual(plain.querySelectorAll('.carte-dom.clickable').length, 0);
 
   const clickable = document.createElement('div');
   renderCarte(clickable, { onClick: () => {} });
-  assertEqual(clickable.querySelectorAll('.carte-stand.clickable').length, DOMAINES.length);
+  assertEqual(clickable.querySelectorAll('.carte-dom.clickable').length, DOMAINES.length);
+});
+
+test('renderCarte fournit les trois boutons de zoom', () => {
+  const container = document.createElement('div');
+  renderCarte(container);
+  assertEqual(container.querySelectorAll('.carte-zoom-btn').length, 3);
 });
 
 // --- Exécution ---
