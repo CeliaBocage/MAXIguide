@@ -49,6 +49,7 @@
   <script src="js/db.js"></script>
   <script src="js/data/domaines.js"></script>
   <script src="js/data/carte.js"></script>
+  <script src="js/data/paysage.js"></script>
   <script src="js/svg.js"></script>
   <script src="js/carte.js"></script>
   <script src="js/storage.js"></script>
@@ -82,6 +83,9 @@
       } catch {
         return; // Pas de réseau : la carte reste affichée, sans les notes
       }
+      // Rien à poser dessus : inutile de redessiner toutes les parcelles
+      if (!allRatings.length) return;
+
       const byDomaine = new Map(DOMAINES.map(d => [d.id, []]));
       for (const r of allRatings) byDomaine.get(r.domaine_id)?.push(r);
 

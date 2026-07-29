@@ -1190,6 +1190,32 @@ section .actions {
   display: block;
 }
 
+/* Le paysage réel, du fond vers la surface : campagne, bois, vignes,
+   villages, plans d'eau. */
+.carte-fond {
+  fill: #f4f0e0;
+}
+
+.carte-bois path {
+  fill: #bed3ac;
+}
+
+/* Teinte « vigne » par défaut ; les parcelles autour d'un domaine noté
+   reçoivent la couleur de sa note en style inline (js/carte.js). */
+.carte-vignes path {
+  fill: #d8c6e2;
+  stroke: #bfa6cd;
+  stroke-width: 0.5;
+}
+
+.carte-villages path {
+  fill: #e7ddcb;
+}
+
+.carte-eau path {
+  fill: #a9cfe0;
+}
+
 .carte-water {
   fill: none;
   stroke: #a9cfe0;
@@ -1204,12 +1230,13 @@ section .actions {
 }
 
 .carte-river-label {
-  fill: #4f8ba7;
-  font-size: 14px;
+  fill: #3f7d9a;
+  font-size: 15px;
+  font-weight: 600;
   font-style: italic;
   paint-order: stroke;
-  stroke: #eef3e6;
-  stroke-width: 3;
+  stroke: #fffdf5;
+  stroke-width: 3.5;
 }
 
 .carte-place-dot {
@@ -1221,17 +1248,24 @@ section .actions {
 }
 
 .carte-place-label {
-  fill: #7a7264;
+  fill: #6b6355;
   font-size: 13px;
   paint-order: stroke;
-  stroke: #eef3e6;
-  stroke-width: 3;
+  stroke: #fffdf5;
+  stroke-width: 3.5;
 }
 
 .carte-place-label.town {
-  fill: #4a443a;
+  fill: #3a352d;
   font-size: 16px;
   font-weight: 700;
+  stroke-width: 4;
+}
+
+/* Liseré clair sous chaque pastille, pour la détacher des parcelles */
+.carte-halo {
+  fill: #fffdf5;
+  opacity: 0.85;
 }
 
 /* Fil qui relie une pastille écartée à l'emplacement réel du domaine */
@@ -1245,7 +1279,7 @@ section .actions {
   fill: #8a8578;
 }
 
-.carte-stand circle {
+.carte-stand .stand-dot {
   fill: #fff;
   stroke: #e63946;
   stroke-width: 3;
@@ -1255,7 +1289,7 @@ section .actions {
   fill: #e63946;
 }
 
-.carte-stand.done circle {
+.carte-stand.done .stand-dot {
   fill: #7cb518;
   stroke: #5c8a0e;
 }
@@ -1268,7 +1302,7 @@ section .actions {
   cursor: pointer;
 }
 
-.carte-stand.clickable:hover circle {
+.carte-stand.clickable:hover .stand-dot {
   stroke-width: 5;
 }
 

@@ -8,7 +8,7 @@
 //   onClick(domaine) (facultatif — rend les domaines cliquables),
 // })
 //
-// Dépend de js/svg.js (svgEl) et js/data/carte.js, à charger avant.
+// Dépend de js/svg.js (svgEl), js/data/carte.js et js/data/paysage.js.
 
 // --- Projection ---------------------------------------------------------
 // Équirectangulaire : à cette latitude et sur 35 km de large, la déformation
@@ -24,7 +24,7 @@ const CARTE_VIEW = (() => {
 })();
 
 // Bandeau de légende sous la carte
-const CARTE_LEGEND_H = 190;
+const CARTE_LEGEND_H = 215;
 
 function carteProject(lon, lat) {
   const { minLon, maxLon, minLat, maxLat } = CARTE_BOUNDS;
@@ -33,6 +33,11 @@ function carteProject(lon, lat) {
     y: (maxLat - lat) / (maxLat - minLat) * CARTE_VIEW.height,
   };
 }
+
+// Un pixel de la carte, en mètres sur le terrain — sert à raisonner en
+// distances réelles (le rayon autour d'un domaine, par exemple).
+const CARTE_M_PER_PX =
+  (CARTE_BOUNDS.maxLat - CARTE_BOUNDS.minLat) * 110570 / CARTE_VIEW.height;
 
 // --- Notes --------------------------------------------------------------
 // Note moyenne d'un lot de fiches : moyenne de toutes les boissons notées
@@ -50,17 +55,84 @@ function carteScore(fiches) {
   return n ? sum / n : null;
 }
 
-// Échelle de couleur des pastilles : du rosé pâle au rouge profond.
+// Échelle de couleur des notes : du rosé pâle au rouge profond.
+// fill/text habillent la pastille du domaine ; vine/vineEdge teintent les
+// parcelles de vigne alentour, en plus clair pour rester un fond.
 const CARTE_SCALE = [
-  { max: 1.5, fill: '#f3d9b8', text: '#6b4a1f' },
-  { max: 2.5, fill: '#e6a97c', text: '#5a2c14' },
-  { max: 3.5, fill: '#cf6f60', text: '#fff' },
-  { max: 4.5, fill: '#a3374b', text: '#fff' },
-  { max: Infinity, fill: '#6e1730', text: '#fff' },
+  { max: 1.5, fill: '#f3d9b8', text: '#6b4a1f', vine: '#f0dcc0', vineEdge: '#d9bf9a' },
+  { max: 2.5, fill: '#e6a97c', text: '#5a2c14', vine: '#eec6a4', vineEdge: '#d3a276' },
+  { max: 3.5, fill: '#cf6f60', text: '#fff', vine: '#e5a79c', vineEdge: '#c87f71' },
+  { max: 4.5, fill: '#a3374b', text: '#fff', vine: '#d08c98', vineEdge: '#ad6070' },
+  { max: Infinity, fill: '#6e1730', text: '#fff', vine: '#b5717f', vineEdge: '#8d4354' },
 ];
 
 function carteScoreColors(score) {
   return CARTE_SCALE.find(step => score <= step.max);
+}
+
+// Les vignes d'un domaine ne sont pas identifiées dans OpenStreetMap : on
+// teinte donc les parcelles situées dans ce rayon autour de sa cave, ce qui
+// couvre l'essentiel d'un domaine gaillacois sans prétendre à un cadastre.
+const CARTE_VIGNES_RAYON_M = 1200;
+
+// --- Surfaces (vignes, bois, eau, villages) ------------------------------
+// Les anneaux de js/data/paysage.js sont stockés en dix-millièmes de degré
+// depuis le coin sud-ouest du cadre : on les repasse en pixels ici.
+function cartePaysagePath(ring) {
+  let d = '';
+  for (let i = 0; i < ring.length; i += 2) {
+    const p = carteProject(
+      CARTE_BOUNDS.minLon + ring[i] * PAYSAGE_UNIT,
+      CARTE_BOUNDS.minLat + ring[i + 1] * PAYSAGE_UNIT
+    );
+    d += `${i === 0 ? 'M' : 'L'}${p.x.toFixed(1)},${p.y.toFixed(1)}`;
+  }
+  return d + 'Z';
+}
+
+// Centre approximatif d'un anneau, en pixels : suffisant pour savoir de quel
+// domaine une parcelle est la plus proche.
+function cartePaysageCentre(ring) {
+  let sx = 0;
+  let sy = 0;
+  const n = ring.length / 2;
+  for (let i = 0; i < ring.length; i += 2) {
+    sx += ring[i];
+    sy += ring[i + 1];
+  }
+  return carteProject(
+    CARTE_BOUNDS.minLon + (sx / n) * PAYSAGE_UNIT,
+    CARTE_BOUNDS.minLat + (sy / n) * PAYSAGE_UNIT
+  );
+}
+
+// Dessine une couche de surfaces d'un seul tenant (bois, eau, villages…)
+function cartePaysageCouche(rings, className) {
+  const g = svgEl('g', { class: className, 'clip-path': 'url(#carte-clip)' });
+  for (const ring of rings) g.appendChild(svgEl('path', { d: cartePaysagePath(ring) }));
+  return g;
+}
+
+// Les parcelles de vigne : celles qui entourent un domaine noté prennent sa
+// couleur, les autres gardent la teinte « vigne » neutre.
+function carteVignes(rated) {
+  const g = svgEl('g', { class: 'carte-vignes', 'clip-path': 'url(#carte-clip)' });
+  const rayon = CARTE_VIGNES_RAYON_M / CARTE_M_PER_PX;
+  for (const ring of PAYSAGE_VIGNES) {
+    const path = svgEl('path', { d: cartePaysagePath(ring) });
+    if (rated.length) {
+      const c = cartePaysageCentre(ring);
+      let near = null;
+      let bestDist = rayon;
+      for (const r of rated) {
+        const dist = Math.hypot(c.x - r.x, c.y - r.y);
+        if (dist < bestDist) { bestDist = dist; near = r; }
+      }
+      if (near) path.setAttribute('style', `fill:${near.colors.vine};stroke:${near.colors.vineEdge}`);
+    }
+    g.appendChild(path);
+  }
+  return g;
 }
 
 // --- Anti-chevauchement des pastilles -----------------------------------
@@ -137,9 +209,14 @@ function carteRiverLabelSpot(river, markers) {
 
       const mx = (a.x + b.x) / 2;
       const my = (a.y + b.y) / 2;
+      // Le nom doit rester dans le cadre — le Cérou ne fait que frôler le bord
+      // nord, le Dadou le bord sud — et, à choisir, on le préfère au large.
+      const edge = Math.min(mx, CARTE_VIEW.width - mx, my, CARTE_VIEW.height - my);
+      if (edge < 22) continue;
+
       const box = { x1: mx - needed / 2, y1: my - 20, x2: mx + needed / 2, y2: my + 6 };
       const busy = boxes.some(bb => boxOverlap(box, bb) > 0);
-      const score = chord - 4 * drift - (busy ? 400 : 0);
+      const score = chord - 4 * drift - (busy ? 400 : 0) - Math.max(0, 90 - edge) * 3;
       if (!best || score > best.score) best = { a, b, score };
     }
   }
@@ -209,9 +286,9 @@ function renderCarte(container, { decorate, onClick } = {}) {
     'aria-label': t('carte.aria'),
   });
 
-  // Fond : les coteaux du Gaillacois. Le même rectangle sert de masque, pour
-  // que les rivières s'arrêtent net au bord de la carte.
-  svg.appendChild(svgEl('rect', { x: 0, y: 0, width: W, height: H, rx: 10, fill: '#eef3e6' }));
+  // Fond : la campagne du Gaillacois. Le même rectangle sert de masque, pour
+  // que rien ne déborde du cadre.
+  svg.appendChild(svgEl('rect', { x: 0, y: 0, width: W, height: H, rx: 10, class: 'carte-fond' }));
   const defs = svgEl('defs');
   const clip = svgEl('clipPath', { id: 'carte-clip' });
   clip.appendChild(svgEl('rect', { x: 0, y: 0, width: W, height: H, rx: 10 }));
@@ -219,19 +296,32 @@ function renderCarte(container, { decorate, onClick } = {}) {
   svg.appendChild(defs);
 
   // Les domaines, écartés juste ce qu'il faut pour rester lisibles. On les
-  // place en premier : les noms de rivières et de villages se rangeront
-  // ensuite là où ils ne passent pas sous une pastille.
+  // place en premier : les parcelles de vigne se teintent d'après eux, et les
+  // noms de rivières et de villages se rangeront là où ils ne passent pas
+  // sous une pastille.
   const placed = [];
   for (const domaine of DOMAINES) {
     const geo = CARTE_DOMAINES[domaine.id];
     if (!geo) continue;
     const p = carteProject(geo.lon, geo.lat);
-    placed.push({ domaine, geo, ax: p.x, ay: p.y, x: p.x, y: p.y });
+    const deco = decorate ? decorate(domaine) : {};
+    placed.push({ domaine, geo, deco, ax: p.x, ay: p.y, x: p.x, y: p.y });
   }
   carteSpread(placed, {
     gap: 27, width: W, height: H,
     margin: { left: 14, right: 14, top: 26, bottom: 34 },
   });
+
+  // Les surfaces réelles : bois, vignes, villages, plans d'eau. Les vignes
+  // autour d'un domaine noté prennent la couleur de sa note (ax/ay : la vraie
+  // position du domaine, pas la pastille écartée).
+  const rated = placed
+    .filter(n => n.deco.done && n.deco.score != null)
+    .map(n => ({ x: n.ax, y: n.ay, colors: carteScoreColors(n.deco.score) }));
+  svg.appendChild(cartePaysageCouche(PAYSAGE_BOIS, 'carte-bois'));
+  svg.appendChild(carteVignes(rated));
+  svg.appendChild(cartePaysageCouche(PAYSAGE_VILLAGES, 'carte-villages'));
+  svg.appendChild(cartePaysageCouche(PAYSAGE_EAU, 'carte-eau'));
 
   // Rivières — le Tarn et la Vère donnent tout de suite le nord et le sud
   const waters = svgEl('g', { 'clip-path': 'url(#carte-clip)' });
@@ -289,8 +379,7 @@ function renderCarte(container, { decorate, onClick } = {}) {
 
   const standsGroup = svgEl('g');
   for (const node of placed) {
-    const { domaine, geo } = node;
-    const deco = decorate ? decorate(domaine) : {};
+    const { domaine, geo, deco } = node;
     const g = svgEl('g', {
       class: 'carte-stand' + (onClick ? ' clickable' : '') + (deco.done ? ' done' : ''),
     });
@@ -298,8 +387,11 @@ function renderCarte(container, { decorate, onClick } = {}) {
       stand: domaine.stand, name: domaine.name, commune: geo.commune,
     })));
 
+    // Liseré clair, pour que la pastille se détache du damier des parcelles
+    g.appendChild(svgEl('circle', { cx: node.x, cy: node.y, r: 13.5, class: 'carte-halo' }));
+
     // Pastille : verte si notée, teintée selon la note moyenne si on en a une
-    const circle = svgEl('circle', { cx: node.x, cy: node.y, r: 11 });
+    const circle = svgEl('circle', { cx: node.x, cy: node.y, r: 11, class: 'stand-dot' });
     const num = svgEl('text', {
       x: node.x, y: node.y, 'text-anchor': 'middle', 'dominant-baseline': 'central',
       'font-size': domaine.stand.length > 2 ? 6.5 : 9.5, 'font-weight': 700, class: 'stand-num',
@@ -344,8 +436,8 @@ function carteLegend() {
   const { width: W, height: H } = CARTE_VIEW;
   const g = svgEl('g');
 
-  // --- Rangée 1 : ce qu'on voit sur le fond de carte
-  const row1 = H + 34;
+  // --- Rangée 1 : les repères ponctuels
+  const row1 = H + 30;
   g.appendChild(svgEl('circle', { cx: 30, cy: row1, r: 11, class: 'carte-key-todo' }));
   g.appendChild(svgEl('text', { x: 52, y: row1 + 6, class: 'carte-legend-label' }, t('carte.legendTodo')));
 
@@ -355,19 +447,37 @@ function carteLegend() {
   g.appendChild(svgEl('circle', { cx: 680, cy: row1, r: 4.5, class: 'carte-place-dot town' }));
   g.appendChild(svgEl('text', { x: 694, y: row1 + 6, class: 'carte-legend-label' }, t('carte.legendVillage')));
 
-  // --- Rangée 2 : l'échelle de couleur des notes, et l'échelle métrique
-  const row2 = H + 82;
-  g.appendChild(svgEl('text', { x: 19, y: row2, class: 'carte-legend-label' }, t('carte.legendRated')));
+  // --- Rangée 2 : les surfaces du paysage
+  const row2 = H + 66;
+  const surfaces = [
+    { x: 19, cls: 'carte-vignes', label: t('carte.legendVines') },
+    { x: 300, cls: 'carte-bois', label: t('carte.legendWood') },
+    { x: 520, cls: 'carte-eau', label: t('carte.legendWater') },
+    { x: 720, cls: 'carte-villages', label: t('carte.legendTown') },
+  ];
+  for (const s of surfaces) {
+    const swatch = svgEl('g', { class: s.cls });
+    swatch.appendChild(svgEl('path', {
+      d: `M${s.x},${row2 - 11}L${s.x + 30},${row2 - 13}L${s.x + 32},${row2 + 5}L${s.x + 2},${row2 + 7}Z`,
+    }));
+    g.appendChild(swatch);
+    g.appendChild(svgEl('text', { x: s.x + 42, y: row2 + 3, class: 'carte-legend-label' }, s.label));
+  }
+
+  // --- Rangée 3 : l'échelle de couleur des notes, et l'échelle métrique
+  const row3 = H + 112;
+  g.appendChild(svgEl('text', { x: 19, y: row3, class: 'carte-legend-label' }, t('carte.legendRated')));
   const swatchW = 42;
   const swatchGap = 46;
   CARTE_SCALE.forEach((step, i) => {
-    g.appendChild(svgEl('rect', {
-      x: 19 + i * swatchGap, y: row2 + 12, width: swatchW, height: 18, rx: 4, fill: step.fill,
-    }));
+    const x = 19 + i * swatchGap;
+    // La teinte des vignes au-dessus, celle de la pastille en dessous
+    g.appendChild(svgEl('rect', { x, y: row3 + 10, width: swatchW, height: 8, fill: step.vine }));
+    g.appendChild(svgEl('rect', { x, y: row3 + 18, width: swatchW, height: 14, fill: step.fill }));
   });
-  g.appendChild(svgEl('text', { x: 19, y: row2 + 47, class: 'carte-legend-tick' }, '1/5'));
+  g.appendChild(svgEl('text', { x: 19, y: row3 + 49, class: 'carte-legend-tick' }, '1/5'));
   g.appendChild(svgEl('text', {
-    x: 19 + (CARTE_SCALE.length - 1) * swatchGap + swatchW, y: row2 + 47,
+    x: 19 + (CARTE_SCALE.length - 1) * swatchGap + swatchW, y: row3 + 49,
     'text-anchor': 'end', class: 'carte-legend-tick',
   }, '5/5'));
 
@@ -376,7 +486,7 @@ function carteLegend() {
   const barKm = 5;
   const barPx = (barKm / KM_PER_DEG_LON) / (CARTE_BOUNDS.maxLon - CARTE_BOUNDS.minLon) * W;
   const barX = W - 30 - barPx;
-  const barY = row2 + 21;
+  const barY = row3 + 24;
   g.appendChild(svgEl('line', { x1: barX, y1: barY, x2: barX + barPx, y2: barY, class: 'carte-scalebar' }));
   g.appendChild(svgEl('line', { x1: barX, y1: barY - 5, x2: barX, y2: barY + 5, class: 'carte-scalebar' }));
   g.appendChild(svgEl('line', {
