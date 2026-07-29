@@ -573,6 +573,53 @@ test('le bouton plein écran bascule la classe, et Échap en sort', () => {
   container.remove();
 });
 
+// --- Le classement général des domaines (partagé classements + moyennes) ---
+
+// Petit raccourci : { id: [fiches] } → la Map attendue par classementDomaines
+function mapFiches(parDomaine) {
+  return new Map(DOMAINES.map(d => [d.id, parDomaine[d.id] || []]));
+}
+
+test('le classement des domaines suit la moyenne de toutes les boissons notées', () => {
+  const c = classementDomaines(mapFiches({
+    rotier: [{ note_rouge: 5, note_blanc: 5 }],
+    vayssette: [{ note_rouge: 4 }],
+    lastours: [{ note_rouge: 2 }],
+  }));
+  assertEqual([...c.keys()], ['rotier', 'vayssette', 'lastours'], 'mauvais ordre');
+  assertEqual(c.get('rotier').rank, 1);
+  assertEqual(c.get('rotier').avg, 5);
+  assertEqual(c.get('rotier').count, 2, 'les deux notes doivent compter');
+  assertEqual(c.get('lastours').rank, 3);
+});
+
+test('à moyenne égale, le domaine le plus goûté passe devant', () => {
+  const c = classementDomaines(mapFiches({
+    rotier: [{ note_rouge: 4 }],
+    vayssette: [{ note_rouge: 4 }, { note_blanc: 4 }],
+  }));
+  assertEqual(c.get('vayssette').rank, 1, '2 notes devraient devancer 1 note');
+  assertEqual(c.get('rotier').rank, 2);
+});
+
+test('sans note de boisson, un domaine n’a pas de place au classement', () => {
+  // Une fiche peut ne porter que des ❤️/⭐ : elle existe, mais ne note rien.
+  const c = classementDomaines(mapFiches({ rotier: [{ coeur: 2, etoile: 1 }] }));
+  assertEqual(c.size, 0, 'une fiche sans note ne devrait pas classer le domaine');
+  assertEqual(classementDomaines(mapFiches({})).size, 0, 'sans fiche, classement vide');
+});
+
+test('les places sont contiguës et couvrent tous les domaines notés', () => {
+  const parDomaine = {};
+  DOMAINES.forEach((d, i) => { parDomaine[d.id] = [{ note_rouge: (i % 5) + 1 }]; });
+  const c = classementDomaines(mapFiches(parDomaine));
+  assertEqual(c.size, DOMAINES.length, 'tous les domaines notés doivent être classés');
+  const rangs = [...c.values()].map(v => v.rank);
+  assertEqual(rangs, rangs.map((_, i) => i + 1), 'les places devraient aller de 1 à n sans trou');
+  const notes = [...c.values()].map(v => v.avg);
+  assert(notes.every((v, i) => i === 0 || notes[i - 1] >= v), 'du mieux noté au moins bien noté');
+});
+
 // --- La normalisation des recherches (partagée liste + carte) ---
 
 test('cleRecherche ignore accents, casse et apostrophes', () => {

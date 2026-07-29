@@ -1090,6 +1090,16 @@ section .actions {
   border-radius: var(--radius);
 }
 
+/* Pastille de classement devant un domaine : 🥇🥈🥉 puis n°4, n°5…
+   Largeur fixe pour que les noms restent alignés d'une ligne à l'autre. */
+.acc-rank {
+  flex: 0 0 3rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
 .acc-title {
   flex: 1;
 }

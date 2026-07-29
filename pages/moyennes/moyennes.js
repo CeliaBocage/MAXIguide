@@ -43,8 +43,10 @@ function ficheLine(who, fiche) {
   return line;
 }
 
-// <details> avec un résumé à deux colonnes (titre à gauche, méta à droite)
-function accordion(summaryLeft, summaryRight) {
+// <details> avec un résumé à deux colonnes (titre à gauche, méta à droite).
+// rank (facultatif) : { label, title } d'une pastille de classement posée
+// avant le titre — les participants n'en ont pas, les domaines si.
+function accordion(summaryLeft, summaryRight, rank) {
   const details = document.createElement('details');
   details.className = 'accordion';
 
@@ -55,6 +57,14 @@ function accordion(summaryLeft, summaryRight) {
   const right = document.createElement('span');
   right.className = 'acc-meta';
   right.textContent = summaryRight;
+
+  if (rank) {
+    const badge = document.createElement('span');
+    badge.className = 'acc-rank';
+    badge.textContent = rank.label;
+    badge.title = rank.title;
+    summary.appendChild(badge);
+  }
   summary.append(left, right);
 
   const body = document.createElement('div');
@@ -138,16 +148,41 @@ async function main() {
     usersAcc.appendChild(details);
   }
 
-  // Détail par domaine : moyennes par boisson + la fiche de chaque participant
+  // Détail par domaine : moyennes par boisson + la fiche de chaque participant.
+  // La liste suit le classement général — du mieux noté au moins bien noté,
+  // les domaines que personne n'a encore notés fermant la marche par n° de stand.
   const domainesAcc = document.getElementById('domaines-acc');
-  for (const domaine of DOMAINES) {
+  const classement = classementDomaines(byDomaine);
+  const MEDALS = ['🥇', '🥈', '🥉'];
+  // Les non-classés partagent tous le même rang de repli — fini, et non pas
+  // Infinity, sinon Infinity - Infinity donne NaN et le tri n'est plus défini.
+  // À rang égal le tri reste stable : ils gardent leur ordre de n° de stand.
+  const rangDe = (d) => classement.get(d.id)?.rank ?? DOMAINES.length + 1;
+  const domainesTries = [...DOMAINES].sort((a, b) => rangDe(a) - rangDe(b));
+
+  for (const domaine of domainesTries) {
     const rows = byDomaine.get(domaine.id);
+    const place = classement.get(domaine.id);
     const persoAvg = rows.length ? avgOf(rows, 'perso') : 0;
+    // La note qui décide de la place s'affiche en tête : sans elle, le rang
+    // n'est lisible qu'au survol, et il n'y a pas de survol sur un téléphone.
+    // Une fiche peut n'avoir que des ❤️/⭐ sans note de boisson : dans ce cas
+    // le domaine a bien des fiches, mais pas de note et donc pas de place.
     const meta = rows.length
-      ? `${countCards(rows.length)} · ❤️ ${avgOf(rows, 'coeur').toFixed(1)} ⭐ ${avgOf(rows, 'etoile').toFixed(1)}`
+      ? (place ? `${place.avg.toFixed(1)}/5 · ` : '')
+        + `${countCards(rows.length)}`
+        + ` · ❤️ ${avgOf(rows, 'coeur').toFixed(1)} ⭐ ${avgOf(rows, 'etoile').toFixed(1)}`
         + (persoAvg ? ` ✨ ${persoAvg.toFixed(1)}` : '')
       : t('moy.noCards');
-    const { details, body } = accordion(`${domaine.stand} · ${domaine.name}`, meta);
+    // Podium pour les trois premiers, puis le numéro de place tout simple
+    const rank = place
+      ? {
+        label: MEDALS[place.rank - 1] || t('moy.rankBadge', { n: place.rank }),
+        title: t('moy.rankTitle', { n: place.rank, avg: place.avg.toFixed(1) }),
+      }
+      : { label: '·', title: t('moy.rankNone') };
+    const { details, body } = accordion(`${domaine.stand} · ${domaine.name}`, meta, rank);
+    details.dataset.search = cleRecherche(`${domaine.stand} ${domaine.name}`);
 
     if (!rows.length) {
       body.appendChild(mutedP(t('moy.noRatingsDomaine')));
@@ -190,6 +225,22 @@ async function main() {
     }
     domainesAcc.appendChild(details);
   }
+
+  // Recherche dans le détail par domaine : 51 menus déroulants, c'est long à
+  // faire défiler quand on cherche juste celui devant lequel on est.
+  const searchEl = document.getElementById('domaines-search');
+  const emptyEl = document.getElementById('domaines-empty');
+  searchEl.setAttribute('aria-label', t('domaines.searchPlaceholder'));
+  searchEl.addEventListener('input', () => {
+    const q = cleRecherche(searchEl.value);
+    let visibles = 0;
+    for (const details of domainesAcc.children) {
+      const ok = !q || details.dataset.search.includes(q);
+      details.hidden = !ok;
+      if (ok) visibles++;
+    }
+    emptyEl.hidden = visibles > 0;
+  });
 }
 
 main().catch(showDbError);

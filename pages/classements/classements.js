@@ -87,19 +87,13 @@ function renderRankings(users, byUser, byDomaine) {
     bottles.map(x => avgEntry(x.name, x.s))
   ));
 
-  // Le meilleur domaine : toutes les notes de boissons confondues
-  const overall = DOMAINES
-    .map(d => {
-      const rows = byDomaine.get(d.id);
-      const notes = rows.flatMap(r => NOTE_KEYS.map(k => r[k]).filter(Boolean));
-      if (!notes.length) return null;
-      return { d, s: { avg: notes.reduce((a, n) => a + n, 0) / notes.length, count: notes.length } };
-    })
-    .filter(Boolean)
-    .sort((a, b) => byAvg(a.s, b.s));
+  // Le meilleur domaine : toutes les notes de boissons confondues.
+  // classementDomaines() (js/data/domaines.js) fait le calcul et le tri —
+  // c'est ce même classement que la page Moyennes affiche domaine par domaine.
+  const overall = [...classementDomaines(byDomaine)]; // déjà trié, du meilleur au moins bon
   container.appendChild(podium(
     t('res.bestDomaine'),
-    overall.map(x => avgEntry(x.d.name, x.s))
+    overall.map(([id, s]) => avgEntry(getDomaine(id).name, s))
   ));
 
   // Les plus gentils (❤️), les plus étoilés (⭐) et les plus stickés (persos)

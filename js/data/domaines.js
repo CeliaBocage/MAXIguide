@@ -83,3 +83,29 @@ function getDomaine(id) {
 function getDomaineByStand(stand) {
   return DOMAINES.find(d => d.stand === stand) || null;
 }
+
+// Le classement général des domaines : la moyenne de toutes les boissons
+// notées, toutes fiches confondues, départagée par le nombre de notes (à
+// moyenne égale, celui qui a été goûté le plus souvent passe devant).
+// C'est le calcul du podium « meilleur domaine » des classements : les deux
+// pages doivent annoncer la même place, alors elles partagent ce helper.
+// byDomaine : Map(domaine.id → fiches). Rend une Map(domaine.id →
+// { rank, avg, count }) déjà dans l'ordre du classement — une Map garde son
+// ordre d'insertion — sans les domaines que personne n'a encore notés.
+function classementDomaines(byDomaine) {
+  const noteKeys = Object.values(BOISSONS).map(b => b.key);
+  const scored = DOMAINES
+    .map(d => {
+      let sum = 0;
+      let count = 0;
+      for (const fiche of byDomaine.get(d.id) || []) {
+        for (const key of noteKeys) {
+          if (fiche[key]) { sum += fiche[key]; count++; }
+        }
+      }
+      return count ? { id: d.id, avg: sum / count, count } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => b.avg - a.avg || b.count - a.count);
+  return new Map(scored.map((x, i) => [x.id, { rank: i + 1, avg: x.avg, count: x.count }]));
+}

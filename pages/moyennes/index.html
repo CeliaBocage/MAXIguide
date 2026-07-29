@@ -44,10 +44,16 @@
 
     <section>
       <h2 data-i18n="moy.domainesTitle">Détail par domaine</h2>
-      <p class="muted" data-i18n="moy.domainesHint">Dépliez un domaine pour voir les moyennes et les fiches de chacun.</p>
+      <p class="muted" data-i18n="moy.domainesHint">Du mieux noté au moins bien noté, avec sa place au classement. Dépliez un domaine pour voir les moyennes et les fiches de chacun.</p>
+      <input type="search" id="domaines-search" class="list-search"
+             data-i18n-placeholder="domaines.searchPlaceholder"
+             placeholder="Chercher un domaine ou un n° de stand…">
       <div id="domaines-acc">
         <!-- rempli par moyennes.js -->
       </div>
+      <p id="domaines-empty" class="list-empty muted" data-i18n="domaines.searchEmpty" hidden>
+        Aucun domaine ne correspond.
+      </p>
     </section>
   </main>
 
