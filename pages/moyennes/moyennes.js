@@ -99,7 +99,8 @@ async function main() {
   document.getElementById('stat-coverage').textContent =
     pct(DOMAINES.length ? covered / DOMAINES.length : 0);
 
-  // Plan moyen : les stickers moyens du groupe (arrondis) posés sur chaque stand
+  // Plan moyen : les stickers moyens du groupe (arrondis) posés sur chaque stand,
+  // et l'emoji de chaque participant passé par le stand affiché en dessous
   renderPlan(document.getElementById('plan-container'), {
     decorate: (domaine) => {
       const rows = byDomaine.get(domaine.id);
@@ -107,7 +108,8 @@ async function main() {
       const badge = '❤️'.repeat(Math.round(avgOf(rows, 'coeur')))
         + '⭐'.repeat(Math.round(avgOf(rows, 'etoile')))
         + '✨'.repeat(Math.round(avgOf(rows, 'perso')));
-      return { done: true, badge };
+      const guides = rows.map(r => r.user_emoji || '✨');
+      return { done: true, badge, guides };
     },
   });
 

@@ -1,6 +1,7 @@
 // Rendu SVG du plan du parc (recréation stylisée du plan officiel).
 // Usage : renderPlan(container, {
-//   decorate(domaine) → { done: bool, badge: '❤️❤️⭐' } (facultatif),
+//   decorate(domaine) → { done: bool, badge: '❤️❤️⭐', guides: ['🦄', '🐙'] } (facultatif —
+//     guides : l'emoji de chaque participant passé par le stand, affiché sous le rond),
 //   onClick(domaine) (facultatif — rend les stands cliquables),
 // })
 const SVG_NS = 'http://www.w3.org/2000/svg';
@@ -115,6 +116,21 @@ function renderPlan(container, { decorate, onClick } = {}) {
       g.appendChild(svgEl('text', {
         x: pos.x, y: pos.y - 16, 'text-anchor': 'middle', 'font-size': 11, class: 'stand-badge',
       }, deco.badge));
+    }
+
+    // Les emojis des participants passés par ce stand, sous le rond
+    // (par lignes de 5 pour ne pas déborder sur les stands voisins)
+    if (deco.guides && deco.guides.length) {
+      const PER_LINE = 5;
+      const text = svgEl('text', {
+        'text-anchor': 'middle', 'font-size': 10, class: 'stand-guides',
+      });
+      for (let i = 0; i < deco.guides.length; i += PER_LINE) {
+        text.appendChild(svgEl('tspan', {
+          x: pos.x, y: pos.y + 23 + (i / PER_LINE) * 12,
+        }, deco.guides.slice(i, i + PER_LINE).join('')));
+      }
+      g.appendChild(text);
     }
 
     if (onClick) {

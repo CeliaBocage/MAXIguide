@@ -1094,3 +1094,9 @@ section .actions {
   stroke: #fff;
   stroke-width: 2;
 }
+
+.stand-guides {
+  paint-order: stroke;
+  stroke: #fff;
+  stroke-width: 2;
+}
