@@ -32,6 +32,17 @@ const Header = {
 
     const nav = document.createElement('nav');
     nav.className = 'tabs';
+    nav.id = 'site-tabs';
+    let activeLabel = '';
+
+    // Sur téléphone, le nom du site cède la place au profil : l'accueil est
+    // alors accessible depuis le menu déroulant (masqué sur grand écran).
+    const home = document.createElement('a');
+    home.className = 'tab tab-home';
+    home.href = BASE + 'index.html';
+    home.textContent = '🏠 ' + t('nav.home');
+    nav.appendChild(home);
+
     for (const tab of [
       { key: 'domaines', label: t('nav.domaines'), href: BASE + 'pages/domaines/index.html' },
       { key: 'classements', label: t('nav.classements'), href: BASE + 'pages/classements/index.html' },
@@ -42,8 +53,43 @@ const Header = {
       link.href = tab.href;
       link.textContent = tab.label;
       link.className = 'tab' + (tab.key === activeTab ? ' active' : '');
+      if (tab.key === activeTab) activeLabel = tab.label;
       nav.appendChild(link);
     }
+
+    // Sur téléphone, les onglets se replient derrière ce bouton (le CSS le
+    // masque au-delà de 640 px, où les onglets restent affichés en ligne).
+    const burger = document.createElement('button');
+    burger.type = 'button';
+    burger.className = 'nav-toggle';
+    burger.setAttribute('aria-controls', 'site-tabs');
+    burger.setAttribute('aria-expanded', 'false');
+    burger.title = t('nav.menu');
+    const burgerIcon = document.createElement('span');
+    burgerIcon.className = 'nav-toggle-icon';
+    burgerIcon.textContent = '☰';
+    burger.appendChild(burgerIcon);
+    if (activeLabel) {
+      const current = document.createElement('span');
+      current.className = 'nav-toggle-label';
+      current.textContent = activeLabel;
+      burger.appendChild(current);
+    }
+    const setMenu = (open) => {
+      nav.classList.toggle('open', open);
+      burger.setAttribute('aria-expanded', String(open));
+    };
+    burger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      setMenu(!nav.classList.contains('open'));
+    });
+    // Un clic ailleurs (ou Échap) referme le menu
+    document.addEventListener('click', (e) => {
+      if (nav.classList.contains('open') && !nav.contains(e.target)) setMenu(false);
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') setMenu(false);
+    });
 
     const userBox = document.createElement('div');
     userBox.className = 'user-box';
@@ -55,7 +101,7 @@ const Header = {
       signIn.href = BASE + 'pages/users/index.html';
       signIn.textContent = t('nav.signIn');
       userBox.append(signIn, I18N.makeToggle());
-      header.append(brand, nav, userBox);
+      header.append(burger, brand, nav, userBox);
       document.body.prepend(header);
       return null;
     }
@@ -94,7 +140,7 @@ const Header = {
     switchLink.textContent = '⇄';
 
     userBox.append(name, score, sync, switchLink, I18N.makeToggle());
-    header.append(brand, nav, userBox);
+    header.append(burger, brand, nav, userBox);
     document.body.prepend(header);
 
     await this.refreshCompletion();

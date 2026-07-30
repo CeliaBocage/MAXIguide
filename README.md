@@ -13,7 +13,7 @@ Chaque invité choisit son profil (ou le crée, sans mot de passe), puis parcour
 
 Le plan du parc est recréé en SVG interactif d'après le [plan officiel](https://www.fete-vins-gaillac.com/plan-du-parc) : on peut noter un stand en le touchant, et le guide de chaque invité affiche ses stickers posés sur le plan.
 
-Son score de complétion (part des domaines notés) est visible en continu dans le header, et la liste des domaines se filtre (tous / à déguster / notés) pour repérer vite où aller. L'onglet **Classements** affiche les podiums en direct — top par boisson, meilleure bouteille, meilleur domaine, les plus gentils ❤️, les plus étoilés ⭐, les guides les plus complets 📖 — et l'onglet **Moyennes** les stats détaillées du groupe. La page « Guides des invités » permet de feuilleter le guide de chacun — son plan, sa carte, et **son classement à lui** : ses domaines rangés de sa meilleure note à la moins bonne, médailles comprises.
+Son score de complétion (part des domaines notés) est visible en continu dans le header — qui tient sur une seule ligne au téléphone, ses onglets repliés derrière un menu ☰ — et la liste des domaines se filtre (tous / à déguster / notés) pour repérer vite où aller. L'onglet **Classements** affiche les podiums en direct — top par boisson, meilleure bouteille, meilleur domaine, les plus gentils ❤️, les plus étoilés ⭐, les guides les plus complets 📖 — et l'onglet **Moyennes** les stats détaillées du groupe. La page « Guides des invités » permet de feuilleter le guide de chacun — son plan, sa carte, et **son classement à lui** : ses domaines rangés de sa meilleure note à la moins bonne, médailles comprises.
 
 **Réseau capricieux, pas de panique** : si la 4G du parc lâche, les fiches sont gardées sur
 le téléphone (file de sync en `localStorage`, badge ⏳ dans le header) et repartent toutes
@@ -53,7 +53,7 @@ js/
 ├── photos.js                 → photos souvenirs : compression, vignettes, plein écran
 ├── storage.js                → couche de données + file de sync hors-ligne
 ├── i18n.js                   → textes FR/EN (bouton 🇫🇷⇄🇬🇧)
-├── header.js                 → header commun : onglets, score de complétion, badge ⏳
+├── header.js                 → header commun : onglets (menu ☰ sur téléphone), score, badge ⏳
 └── pwa.js                    → installe le service worker (toutes les pages)
 tests/                        → tests navigateur (./tests/run.sh, ou tests/index.html)
 secrets/

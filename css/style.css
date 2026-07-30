@@ -293,13 +293,20 @@ section h2 {
   text-decoration: none;
 }
 
-/* Quatre onglets (Domaines, Classements, Moyennes, Guides) : sur un téléphone
-   étroit, ils passent à la ligne plutôt que de déborder. */
+/* Quatre onglets (Domaines, Classements, Moyennes, Guides) : en ligne sur
+   grand écran, repliés dans un menu déroulant sur téléphone (voir plus bas). */
 .tabs {
   display: flex;
   gap: 0.5rem;
   flex: 1;
   flex-wrap: wrap;
+}
+
+/* Bouton ☰ : inutile sur grand écran, où tous les onglets tiennent en ligne.
+   L'entrée « Accueil » du menu non plus : le nom du site y mène déjà. */
+.nav-toggle,
+.tab-home {
+  display: none;
 }
 
 .tab {
@@ -371,6 +378,123 @@ section h2 {
 .switch-user.sign-in:hover {
   color: var(--primary-dark);
   text-decoration: underline;
+}
+
+/* Sur téléphone, le header tient sur une seule ligne : ☰ + nom du site +
+   profil. Les onglets deviennent un menu déroulant, ouvert par le ☰. */
+@media (max-width: 640px) {
+  .site-header {
+    flex-wrap: nowrap;
+    gap: 0.5rem;
+    padding: 0.45rem 0.7rem;
+    position: relative;
+  }
+
+  .nav-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex: none;
+    max-width: 55vw;
+    padding: 0.35rem 0.6rem;
+    border: 1px solid #e0d9cf;
+    border-radius: 999px;
+    background: var(--card);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    line-height: 1.2;
+    cursor: pointer;
+  }
+
+  .nav-toggle[aria-expanded='true'] {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+  }
+
+  .nav-toggle-icon {
+    font-size: 1.05rem;
+  }
+
+  /* Le nom de l'onglet courant, tronqué s'il est trop long */
+  .nav-toggle-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Le nom du site laisse toute la place au profil : l'accueil reste
+     accessible depuis le menu déroulant */
+  .brand {
+    display: none;
+  }
+
+  /* Le menu déroulant : sous le header, aligné à gauche sur le ☰ */
+  .tabs {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0.7rem;
+    z-index: 20;
+    flex: none;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 0.15rem;
+    min-width: 12rem;
+    padding: 0.4rem;
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.16);
+  }
+
+  .tabs.open {
+    display: flex;
+  }
+
+  .tab {
+    padding: 0.6rem 0.8rem;
+    border-radius: var(--radius);
+    color: var(--text);
+  }
+
+  .tab-home {
+    display: block;
+    border-bottom: 1px solid #eee6dc;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+
+  /* Le profil, en version compacte : c'est le nom qui se tronque quand la
+     ligne est serrée, jamais le score ni les boutons */
+  .user-box {
+    flex: 1;
+    justify-content: flex-end;
+    gap: 0.4rem;
+    min-width: 0;
+  }
+
+  .user-name {
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 0.9rem;
+  }
+
+  .completion-badge,
+  .sync-badge,
+  .switch-user,
+  .lang-toggle {
+    flex: none;
+  }
+
+  .completion-badge,
+  .sync-badge {
+    font-size: 0.78rem;
+    padding: 0.2rem 0.5rem;
+  }
 }
 
 /* --- Vue liste / plan --- */
@@ -1220,6 +1344,14 @@ section .actions {
   right: 0.75rem;
   z-index: 20;
   box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12);
+}
+
+/* Dans le header d'un téléphone, chaque millimètre compte */
+@media (max-width: 640px) {
+  .site-header .lang-toggle {
+    padding: 0.25rem 0.45rem;
+    font-size: 0.78rem;
+  }
 }
 
 /* --- Plan du parc (SVG) --- */
