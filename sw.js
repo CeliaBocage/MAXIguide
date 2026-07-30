@@ -8,7 +8,7 @@
 // Stratégie : on répond avec la copie locale (instantané, marche sans réseau) et
 // on rafraîchit en arrière-plan. Un déploiement est donc visible à la visite
 // suivante. Bump de CACHE = on repart d'un cache propre.
-const CACHE = 'maxiguide-v1';
+const CACHE = 'maxiguide-v2';
 
 // Tout ce qu'il faut pour que chaque page s'ouvre hors-ligne. Les data-URL des
 // photos, elles, restent en base : elles ne se chargent que sur demande.

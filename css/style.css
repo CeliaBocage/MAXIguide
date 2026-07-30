@@ -293,10 +293,13 @@ section h2 {
   text-decoration: none;
 }
 
+/* Quatre onglets (Domaines, Classements, Moyennes, Guides) : sur un téléphone
+   étroit, ils passent à la ligne plutôt que de déborder. */
 .tabs {
   display: flex;
   gap: 0.5rem;
   flex: 1;
+  flex-wrap: wrap;
 }
 
 .tab {

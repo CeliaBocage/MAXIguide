@@ -136,7 +136,7 @@ async function renderGuide(userId) {
 
 async function main() {
   // Page ouverte à tous : le header s'affiche même sans profil choisi
-  await Header.mount(null, { requireUser: false }).catch(() => {});
+  const moi = await Header.mount('guides', { requireUser: false }).catch(() => null);
 
   const users = await Storage.getUsers();
   usersById = new Map(users.map(u => [u.id, u]));
@@ -147,9 +147,11 @@ async function main() {
     select.appendChild(option);
   }
 
-  // Pré-sélection via ?user=<id>
-  const preselected = new URLSearchParams(window.location.search).get('user');
-  if (preselected && users.some(u => u.id === preselected)) {
+  // Pré-sélection : le guide demandé par ?user=<id>, sinon le sien quand on est
+  // connecté — l'onglet Guides tombe ainsi directement sur son classement.
+  const demande = new URLSearchParams(window.location.search).get('user');
+  const preselected = [demande, moi?.id].find(id => id && users.some(u => u.id === id));
+  if (preselected) {
     select.value = preselected;
     await renderGuide(preselected);
   }
