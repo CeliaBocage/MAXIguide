@@ -13,12 +13,22 @@
 const NOTE_KEYS = ['note_blanc', 'note_rouge', 'note_rose', 'note_whisky', 'note_jus'];
 const STICKER_KEYS = ['coeur', 'etoile', 'perso'];
 
+// Une fiche enregistrée sans ses photos porte gardePhotos: true — la page de
+// notation n'a pas réussi à les charger (réseau absent) et ne veut surtout pas
+// les écraser. La colonne photos est alors laissée telle quelle, et la fiche
+// n'est jamais vide : ses photos, elles, sont bien là.
 function isEmptyFiche(fiche) {
   return NOTE_KEYS.every(k => !fiche[k])
     && STICKER_KEYS.every(k => !fiche[k])
     && !(fiche.commentaire || '').trim()
+    && !fiche.gardePhotos
     && !(fiche.photos || []).length;
 }
+
+// Photos déjà chargées pendant cette visite, par `userId/domaineId` : elles ne
+// changent pas sous nos pieds, et les recharger coûte cher (voir
+// Storage.getFichePhotos).
+const photoMemo = new Map();
 
 // La colonne photos arrive de la base en texte JSON (ou null) ; le reste du
 // code manipule toujours un tableau.
@@ -202,19 +212,23 @@ const Storage = {
   // la dernière lecture réussie (cache local) ; dans tous les cas, les fiches
   // en attente dans la file de sync sont posées par-dessus, comme si elles
   // étaient déjà en base.
+  //
+  // Les photos ne sont PAS du voyage : seul leur nombre (nb_photos) l'est.
+  // Elles pèsent ~100 Ko chacune et il y en a jusqu'à 3 par fiche, soit
+  // plusieurs Mo sur la 4G du parc pour des vignettes que personne ne regarde
+  // la plupart du temps. On les charge à la demande, avec getFichePhotos().
   async getUserRatings(userId) {
     const cacheKey = `maxiguide.cache.ratings.${userId}`;
     let map;
     try {
       const rows = await dbExecute(
         `SELECT domaine_id, note_blanc, note_rouge, note_rose, note_whisky, note_jus,
-                coeur, etoile, perso, commentaire, photos
+                coeur, etoile, perso, commentaire,
+                COALESCE(json_array_length(photos), 0) AS nb_photos
          FROM ratings WHERE user_id = ?`,
         [userId]
       );
-      map = Object.fromEntries(rows.map(r => [r.domaine_id, { ...r, photos: parsePhotos(r.photos) }]));
-      // Avec les photos, le cache peut dépasser le quota localStorage : dans ce
-      // cas on garde le cache précédent plutôt que de faire échouer la lecture.
+      map = Object.fromEntries(rows.map(r => [r.domaine_id, r]));
       try { localStorage.setItem(cacheKey, JSON.stringify(map)); }
       catch { /* quota plein : tant pis pour le cache */ }
     } catch (err) {
@@ -234,17 +248,47 @@ const Storage = {
           ...Object.fromEntries(NOTE_KEYS.map(k => [k, op.fiche[k] || null])),
           ...Object.fromEntries(STICKER_KEYS.map(k => [k, op.fiche[k] || 0])),
           commentaire: (op.fiche.commentaire || '').trim() || null,
-          photos: parsePhotos(op.fiche.photos),
+          // Fiche en attente sans ses photos : leur nombre est celui qu'on
+          // connaissait déjà (base ou cache local).
+          nb_photos: op.fiche.gardePhotos
+            ? (map[op.domaineId]?.nb_photos || 0)
+            : parsePhotos(op.fiche.photos).length,
         };
       }
     }
     return map;
   },
 
+  // Les photos d'une seule fiche, chargées quand on veut vraiment les voir
+  // (ouverture d'un détail, page de notation). Une fiche encore en attente de
+  // réseau n'existe qu'ici : la file de sync passe donc avant la base.
+  // Ce qui a déjà été chargé reste en mémoire — rouvrir un détail ne
+  // retélécharge rien (le temps de la visite de la page, pas plus).
+  async getFichePhotos(userId, domaineId) {
+    for (const op of SyncQueue.load()) {
+      if (op.userId !== userId || op.domaineId !== domaineId) continue;
+      // Sauf si cette fiche-là est justement partie sans ses photos : elles
+      // sont restées en base, c'est là qu'il faut aller les chercher.
+      if (!op.fiche.gardePhotos) return parsePhotos(op.fiche.photos);
+    }
+
+    const key = `${userId}/${domaineId}`;
+    if (photoMemo.has(key)) return photoMemo.get(key);
+    const rows = await dbExecute(
+      'SELECT photos FROM ratings WHERE user_id = ? AND domaine_id = ?',
+      [userId, domaineId]
+    );
+    const photos = parsePhotos(rows[0]?.photos);
+    photoMemo.set(key, photos);
+    return photos;
+  },
+
   // Enregistre la fiche ; si le réseau manque, elle rejoint la file de sync et
   // partira toute seule. Retourne { queued } pour que la page notation puisse
   // afficher « enregistrée » ou « en attente de réseau ».
   async saveRating(userId, domaineId, fiche) {
+    photoMemo.delete(`${userId}/${domaineId}`); // ses photos viennent de changer
+
     // Des fiches attendent déjà ? La nôtre passe derrière pour garder l'ordre.
     if (SyncQueue.size()) {
       SyncQueue.push({ userId, domaineId, fiche });
@@ -269,15 +313,18 @@ const Storage = {
     // 3 photos max par fiche, quoi qu'en dise l'appelant (garde-fou taille)
     const photos = parsePhotos(fiche.photos).slice(0, 3);
     const NOTES = NOTE_KEYS;
-    const empty = isEmptyFiche(fiche);
 
-    if (empty) {
+    if (isEmptyFiche(fiche)) {
       await dbExecute(
         'DELETE FROM ratings WHERE user_id = ? AND domaine_id = ?',
         [userId, domaineId]
       );
       return;
     }
+
+    // Fiche enregistrée sans ses photos : la colonne reste à ce qu'elle était
+    // (nouvelle ligne : NULL, il n'y en avait pas).
+    const majPhotos = fiche.gardePhotos ? '' : '\n         photos = excluded.photos,';
 
     await dbExecute(
       `INSERT INTO ratings (user_id, domaine_id, note_blanc, note_rouge, note_rose,
@@ -292,8 +339,7 @@ const Storage = {
          coeur = excluded.coeur,
          etoile = excluded.etoile,
          perso = excluded.perso,
-         commentaire = excluded.commentaire,
-         photos = excluded.photos,
+         commentaire = excluded.commentaire,${majPhotos}
          updated_at = strftime('%Y-%m-%dT%H:%M:%fZ', 'now')`,
       [
         userId, domaineId,
@@ -307,16 +353,19 @@ const Storage = {
 
   // --- Stats pour l'onglet Moyennes ---
 
-  // Toutes les fiches de tout le monde, avec le nom du participant
+  // Toutes les fiches de tout le monde, avec le nom du participant. Comme
+  // getUserRatings, cette requête ne rapporte que le nombre de photos : ici
+  // elles se comptent en dizaines, ça ferait plusieurs Mo à chaque ouverture
+  // des Moyennes ou des Classements.
   async getAllRatings() {
-    const rows = await dbExecute(
+    return dbExecute(
       `SELECT r.user_id, u.name AS user_name, u.emoji AS user_emoji, r.domaine_id,
               r.note_blanc, r.note_rouge, r.note_rose, r.note_whisky, r.note_jus,
-              r.coeur, r.etoile, r.perso, r.commentaire, r.photos
+              r.coeur, r.etoile, r.perso, r.commentaire,
+              COALESCE(json_array_length(r.photos), 0) AS nb_photos
        FROM ratings r
        JOIN users u ON u.id = r.user_id
        ORDER BY u.name COLLATE NOCASE`
     );
-    return rows.map(r => ({ ...r, photos: parsePhotos(r.photos) }));
   },
 };

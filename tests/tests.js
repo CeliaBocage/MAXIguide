@@ -364,14 +364,99 @@ test('les photos partent en JSON (3 maximum) et reviennent en tableau', async ()
   assertEqual(JSON.parse(sentArgs(0).at(-1)), ['a', 'b', 'c'], 'jamais plus de 3 photos en base');
 });
 
-test('les photos des fiches en attente restent visibles hors-ligne', async () => {
+// --- Photos : chargées seulement quand on veut les voir ---
+// Elles pèsent ~100 Ko chacune : les listes de fiches ne transportent que leur
+// nombre (nb_photos), et getFichePhotos va chercher celles d'une fiche.
+
+test('la liste des fiches ne rapporte pas les photos, juste leur nombre', async () => {
+  clearAppStorage();
+  mockFetchOK([{ domaine_id: 'rotier', note_blanc: 4, nb_photos: 2 }]);
+  const ratings = await Storage.getUserRatings('u1');
+  assertEqual(ratings['rotier'].nb_photos, 2);
+  assert(!('photos' in ratings['rotier']), 'les data-URL ne doivent pas descendre avec la liste');
+  assert(!sentSql(0).includes(' photos'), `la requête ne doit pas lire la colonne : ${sentSql(0)}`);
+});
+
+test('getAllRatings non plus (des dizaines de photos, ça ferait des Mo)', async () => {
+  clearAppStorage();
+  mockFetchOK([{ user_id: 'u1', user_name: 'Célia', domaine_id: 'rotier', nb_photos: 1 }]);
+  const all = await Storage.getAllRatings();
+  assertEqual(all[0].nb_photos, 1);
+  assert(!('photos' in all[0]), 'les data-URL ne doivent pas descendre avec les fiches du groupe');
+});
+
+test('getFichePhotos va chercher les photos d’une seule fiche', async () => {
+  clearAppStorage();
+  mockFetchOK([{ photos: '["data:image/jpeg;base64,AAA"]' }]);
+  const photos = await Storage.getFichePhotos('u1', 'rotier');
+  assertEqual(photos, ['data:image/jpeg;base64,AAA']);
+  assert(sentArgs(0).includes('rotier'), 'on ne demande que cette fiche-là');
+
+  // Rouvrir le même détail ne retélécharge rien
+  mockFetchOffline();
+  assertEqual(await Storage.getFichePhotos('u1', 'rotier'), ['data:image/jpeg;base64,AAA'],
+    'les photos déjà chargées restent disponibles');
+});
+
+test('les photos d’une fiche en attente sont lisibles hors-ligne', async () => {
   clearAppStorage();
   mockFetchOK([]);
   await Storage.getUserRatings('u1'); // remplit le cache
   mockFetchOffline();
   await Storage.saveRating('u1', 'rotier', { ...FICHE, photos: ['data:image/jpeg;base64,AAA'] });
+
+  // La fiche n'est pas encore en base : ses photos n'existent que dans la file
   const ratings = await Storage.getUserRatings('u1');
-  assertEqual(ratings['rotier'].photos, ['data:image/jpeg;base64,AAA']);
+  assertEqual(ratings['rotier'].nb_photos, 1);
+  assertEqual(await Storage.getFichePhotos('u1', 'rotier'), ['data:image/jpeg;base64,AAA']);
+});
+
+test('une fiche enregistrée sans ses photos ne les efface pas', async () => {
+  clearAppStorage();
+  // La page de notation n'a pas pu charger les photos : gardePhotos le dit
+  mockFetchOK([]);
+  await Storage.saveRating('u1', 'rotier', { ...FICHE, photos: [], gardePhotos: true });
+  assert(!sentSql(0).includes('photos = excluded.photos'),
+    `la colonne photos doit rester intacte : ${sentSql(0)}`);
+
+  // …et une fiche vidée de tout le reste ne devient pas une suppression :
+  // ses photos, elles, sont toujours là
+  mockFetchOK([]);
+  await Storage.saveRating('u1', 'rotier', { coeur: 0, etoile: 0, gardePhotos: true });
+  assert(!sentSql(0).startsWith('DELETE'), 'la fiche a encore ses photos, on ne la supprime pas');
+
+  // Sans gardePhotos, en revanche, rien ne retient la fiche vide
+  mockFetchOK([]);
+  await Storage.saveRating('u1', 'rotier', { coeur: 0, etoile: 0, photos: [] });
+  assert(sentSql(0).startsWith('DELETE'));
+});
+
+test('makePhotoLoader ne charge les photos qu’au clic', async () => {
+  let appels = 0;
+  const btn = makePhotoLoader(2, async () => {
+    appels++;
+    return ['data:image/jpeg;base64,AAA', 'data:image/jpeg;base64,BBB'];
+  });
+  const box = document.createElement('div');
+  box.appendChild(btn);
+  assertEqual(appels, 0, 'rien ne doit être chargé avant le clic');
+  assert(btn.textContent.includes('2'), 'le bouton annonce le nombre de photos');
+
+  btn.click();
+  await new Promise(r => setTimeout(r, 0));
+  assertEqual(appels, 1);
+  assertEqual(box.querySelectorAll('.photo-strip img').length, 2,
+    'les vignettes remplacent le bouton');
+});
+
+test('makePhotoLoader hors-ligne : le bouton reste, pour réessayer', async () => {
+  const btn = makePhotoLoader(1, async () => { throw new Error('hors-ligne'); });
+  const box = document.createElement('div');
+  box.appendChild(btn);
+  btn.click();
+  await new Promise(r => setTimeout(r, 0));
+  assert(box.contains(btn), 'le bouton doit rester en place');
+  assert(!btn.disabled, 'et rester cliquable pour réessayer');
 });
 
 test('getCurrentUser retombe sur le cache local quand le réseau manque', async () => {

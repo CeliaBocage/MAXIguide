@@ -1,0 +1,15 @@
+{
+  "name": "MAXIguide — le jeu de dégustation",
+  "short_name": "MAXIguide",
+  "description": "Le jeu de dégustation de la fête des vins de Gaillac : notez chaque domaine, suivez votre guide.",
+  "lang": "fr",
+  "start_url": "index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#fdf4ee",
+  "theme_color": "#fdf4ee",
+  "icons": [
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

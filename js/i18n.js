@@ -62,7 +62,10 @@ const I18N = (() => {
       'guide.planHint': 'Ses ❤️, ⭐ et son sticker perso sont posés sur les stands.',
       'guide.carteTitle': 'Sa carte du vignoble',
       'guide.carteHint': 'Les domaines qu’il ou elle a notés, à l’endroit où ils se trouvent vraiment dans le Gaillacois.',
-      'guide.cards': 'Ses fiches',
+      'guide.cards': 'Son classement',
+      'guide.cardsHint': 'Ses fiches, de son meilleur domaine au moins bon — avec sa note moyenne à lui.',
+      'guide.rankScore': '{avg}/5',
+      'guide.rankTitle': 'Sa place n°{n} — {avg}/5 de moyenne',
       'guide.empty': "Cet invité n'a encore rien noté.",
 
       // Page domaines
@@ -108,6 +111,11 @@ const I18N = (() => {
       'photo.alt': 'Photo {n}',
       'photo.remove': 'Retirer la photo {n}',
       'photo.error': 'Impossible de lire cette image — réessayez avec une autre.',
+      'photo.load': '📷 Voir les {n} photos',
+      'photo.load1': '📷 Voir la photo',
+      'photo.loading': '📷 Chargement…',
+      'photo.loadError': '📷 Photos indisponibles — réessayer',
+      'photo.keptOffline': '📷 {n} photo(s) déjà là, illisibles sans réseau — elles seront conservées.',
 
       // Boissons
       'boisson.blanc': '⚪ Blancs',
@@ -266,7 +274,10 @@ const I18N = (() => {
       'guide.planHint': 'Their ❤️, ⭐ and personal sticker are placed on the stands.',
       'guide.carteTitle': 'Their vineyard map',
       'guide.carteHint': 'The wineries they rated, shown where they really sit in the Gaillac countryside.',
-      'guide.cards': 'Their tasting cards',
+      'guide.cards': 'Their ranking',
+      'guide.cardsHint': 'Their cards, from their best winery to their least favourite — with their own average.',
+      'guide.rankScore': '{avg}/5',
+      'guide.rankTitle': 'Their #{n} — {avg}/5 average',
       'guide.empty': "This guest hasn't rated anything yet.",
 
       // Wineries page
@@ -312,6 +323,11 @@ const I18N = (() => {
       'photo.alt': 'Photo {n}',
       'photo.remove': 'Remove photo {n}',
       'photo.error': 'Could not read this image — try another one.',
+      'photo.load': '📷 See the {n} photos',
+      'photo.load1': '📷 See the photo',
+      'photo.loading': '📷 Loading…',
+      'photo.loadError': '📷 Photos unavailable — try again',
+      'photo.keptOffline': '📷 {n} photo(s) already saved, unreadable while offline — they will be kept.',
 
       // Drinks
       'boisson.blanc': '⚪ Whites',

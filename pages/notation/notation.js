@@ -255,13 +255,38 @@ async function main() {
 
   // Photos souvenirs (jusqu'à 3) : compressées côté client (js/photos.js)
   // avant de rejoindre la fiche, comme n'importe quelle autre valeur.
-  const photos = parsePhotos(existing.photos).slice(0, MAX_PHOTOS);
+  // La liste des fiches ne les transporte plus (trop lourdes) : on va chercher
+  // celles de ce domaine-là, et de lui seul.
+  const photos = [];
+  // Réseau absent au chargement : on ne sait pas ce qu'il y avait. On le dit à
+  // l'enregistrement (gardePhotos) pour ne surtout pas effacer des photos
+  // qu'on n'a jamais vues.
+  let photosChargees = true;
+  if (existing.nb_photos) {
+    try {
+      photos.push(...(await Storage.getFichePhotos(user.id, domaine.id)).slice(0, MAX_PHOTOS));
+    } catch {
+      photosChargees = false;
+    }
+  }
+
   const photoRow = document.getElementById('photo-row');
   const photoBtn = document.getElementById('add-photo-btn');
   const photoInput = document.getElementById('photo-input');
   const photoErr = document.getElementById('photo-error');
 
   function renderPhotos() {
+    // Photos existantes qu'on n'a pas pu charger : on ne peut ni les montrer ni
+    // les compléter sans risquer de les remplacer. On le dit, et le reste de la
+    // fiche s'enregistre normalement.
+    if (!photosChargees) {
+      const p = document.createElement('p');
+      p.className = 'muted';
+      p.textContent = t('photo.keptOffline', { n: existing.nb_photos });
+      photoRow.replaceChildren(p);
+      photoBtn.hidden = true;
+      return;
+    }
     photoRow.replaceChildren(makePhotoStrip(photos, {
       onRemove: (i) => {
         photos.splice(i, 1);
@@ -301,6 +326,7 @@ async function main() {
         ...fiche,
         commentaire: commentaireEl.value,
         photos,
+        gardePhotos: !photosChargees,
       });
       await Header.refreshCompletion();
       savedMsg.textContent = t(queued ? 'notation.savedPending' : 'notation.saved');

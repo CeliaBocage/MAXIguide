@@ -40,6 +40,30 @@ function openPhotoLightbox(src) {
   document.body.appendChild(overlay);
 }
 
+// Bouton « 📷 3 photos » qui va chercher les photos au moment où on veut les
+// voir, puis se remplace par leurs vignettes. Les listes (guides, moyennes) ne
+// connaissent que le nombre de photos d'une fiche : les data-URL, elles,
+// arrivent seulement ici (voir Storage.getFichePhotos).
+function makePhotoLoader(count, load) {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'photo-loader';
+  btn.textContent = t(count === 1 ? 'photo.load1' : 'photo.load', { n: count });
+
+  btn.addEventListener('click', async () => {
+    btn.disabled = true;
+    btn.textContent = t('photo.loading');
+    try {
+      btn.replaceWith(makePhotoStrip(await load()));
+    } catch {
+      // Hors-ligne : la fiche est là, ses photos sont restées à la maison
+      btn.disabled = false;
+      btn.textContent = t('photo.loadError');
+    }
+  });
+  return btn;
+}
+
 // Bande de vignettes cliquables (plein écran). onRemove (facultatif) ajoute
 // un ✕ sur chaque photo — utilisé par la page de notation.
 function makePhotoStrip(photos, { onRemove } = {}) {

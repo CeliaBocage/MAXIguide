@@ -39,7 +39,14 @@ function ficheLine(who, fiche) {
     comment.textContent = `« ${fiche.commentaire} »`;
     line.appendChild(comment);
   }
-  if (fiche.photos?.length) line.appendChild(makePhotoStrip(fiche.photos));
+  // Les photos ne descendent pas avec les fiches (elles pèsent trop lourd pour
+  // 51 domaines × tout le monde) : un bouton va les chercher à la demande.
+  if (fiche.nb_photos) {
+    line.appendChild(makePhotoLoader(
+      fiche.nb_photos,
+      () => Storage.getFichePhotos(fiche.user_id, fiche.domaine_id)
+    ));
+  }
   return line;
 }
 

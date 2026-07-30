@@ -998,6 +998,47 @@ section .actions {
   font-weight: 600;
 }
 
+/* Sa place au classement (🥇 4,5/5) collée au nom du domaine, pour que le nom
+   ne s'éloigne pas de sa médaille quand la ligne se coupe en deux. */
+.guide-card-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.guide-rank {
+  color: var(--muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Bouton « 📷 Voir les 3 photos » : les photos ne descendent qu'à la demande
+   (voir js/photos.js et Storage.getFichePhotos). */
+.photo-loader {
+  margin-top: 0.5rem;
+  border: 1px dashed #d8d0c2;
+  border-radius: 999px;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.25rem 0.75rem;
+  cursor: pointer;
+}
+
+.photo-loader:hover:not(:disabled) {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.photo-loader:disabled {
+  cursor: default;
+  opacity: 0.7;
+}
+
 .guide-notes {
   display: flex;
   gap: 1rem;

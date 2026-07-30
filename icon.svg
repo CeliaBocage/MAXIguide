@@ -1,0 +1,17 @@
+<!-- Icône du MAXIguide : un verre de gaillac sur fond parchemin.
+     Dessinée à la main, sans police ni emoji, pour être la même partout. Le
+     motif tient dans les 80 % centraux : les systèmes qui rognent les icônes
+     (Android « maskable ») ne coupent rien.
+     iOS ne sait pas s'en servir pour l'écran d'accueil : les PNG de icons/ en
+     sont tirés, avec ./icons/generer.sh. -->
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" fill="#fdf4ee"/>
+  <!-- le vin, posé au fond du calice -->
+  <path d="M186 176h140c-4 62-30 106-70 119-40-13-66-57-70-119z" fill="#c1121f"/>
+  <!-- le calice -->
+  <path d="M170 118h172c0 104-36 170-86 184-50-14-86-80-86-184z"
+        fill="none" stroke="#5c1a26" stroke-width="16" stroke-linejoin="round"/>
+  <!-- le pied -->
+  <path d="M256 302v92" fill="none" stroke="#5c1a26" stroke-width="18" stroke-linecap="round"/>
+  <ellipse cx="256" cy="398" rx="72" ry="16" fill="#5c1a26"/>
+</svg>

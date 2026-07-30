@@ -13,17 +13,30 @@ Chaque invité choisit son profil (ou le crée, sans mot de passe), puis parcour
 
 Le plan du parc est recréé en SVG interactif d'après le [plan officiel](https://www.fete-vins-gaillac.com/plan-du-parc) : on peut noter un stand en le touchant, et le guide de chaque invité affiche ses stickers posés sur le plan.
 
-Son score de complétion (part des domaines notés) est visible en continu dans le header, et la liste des domaines se filtre (tous / à déguster / notés) pour repérer vite où aller. L'onglet **Classements** affiche les podiums en direct — top par boisson, meilleure bouteille, meilleur domaine, les plus gentils ❤️, les plus étoilés ⭐, les guides les plus complets 📖 — et l'onglet **Moyennes** les stats détaillées du groupe. La page « Guides des invités » permet de feuilleter le guide de chacun, avec ses cœurs et étoiles posés sur le plan du parc.
+Son score de complétion (part des domaines notés) est visible en continu dans le header, et la liste des domaines se filtre (tous / à déguster / notés) pour repérer vite où aller. L'onglet **Classements** affiche les podiums en direct — top par boisson, meilleure bouteille, meilleur domaine, les plus gentils ❤️, les plus étoilés ⭐, les guides les plus complets 📖 — et l'onglet **Moyennes** les stats détaillées du groupe. La page « Guides des invités » permet de feuilleter le guide de chacun — son plan, sa carte, et **son classement à lui** : ses domaines rangés de sa meilleure note à la moins bonne, médailles comprises.
 
 **Réseau capricieux, pas de panique** : si la 4G du parc lâche, les fiches sont gardées sur
 le téléphone (file de sync en `localStorage`, badge ⏳ dans le header) et repartent toutes
 seules au retour du réseau. Les pages déjà visitées continuent de s'afficher grâce à un
 cache local des lectures.
 
+Et le site lui-même tient sur le téléphone : un **service worker** (`sw.js`) en garde une
+copie complète, donc recharger une page ou en ouvrir une nouvelle marche même sans réseau.
+Avec le manifest, le MAXIguide s'**installe sur l'écran d'accueil** (« Ajouter à l'écran
+d'accueil ») et s'ouvre en plein écran, sans la barre du navigateur.
+
+Les **photos** ne descendent jamais avec les listes de fiches : elles pèsent ~100 Ko
+chacune, et il y en a jusqu'à 3 par fiche. Les pages n'en connaissent que le nombre et
+affichent un bouton « 📷 Voir les photos » qui va les chercher au moment où on veut
+vraiment les regarder.
+
 ## Architecture
 
 ```
 index.html                    → accueil : explication du jeu
+sw.js                         → service worker : le site entier hors-ligne
+manifest.json                 → installation sur l'écran d'accueil
+icon.svg + icons/             → l'icône (icons/generer.sh refait le PNG)
 pages/
 ├── users/                    → choix ou création de profil (la « connexion »)
 ├── domaines/                 → liste filtrable des domaines + plan du parc
@@ -40,8 +53,9 @@ js/
 ├── photos.js                 → photos souvenirs : compression, vignettes, plein écran
 ├── storage.js                → couche de données + file de sync hors-ligne
 ├── i18n.js                   → textes FR/EN (bouton 🇫🇷⇄🇬🇧)
-└── header.js                 → header commun : onglets, score de complétion, badge ⏳
-tests/                        → tests navigateur (ouvrir tests/index.html, réseau simulé)
+├── header.js                 → header commun : onglets, score de complétion, badge ⏳
+└── pwa.js                    → installe le service worker (toutes les pages)
+tests/                        → tests navigateur (./tests/run.sh, ou tests/index.html)
 secrets/
 ├── config.example.js         → modèle de config (committé)
 └── config.js                 → URL + token Turso (gitignoré, jamais sur GitHub)
@@ -80,9 +94,14 @@ Ouvrir `index.html` dans un navigateur, tout simplement. (Ou servir le dossier a
 
 ## Tests
 
-Ouvrir `tests/index.html` dans un navigateur : la vingtaine de tests s'exécute sur place
-(fetch est simulé — pannes de réseau, erreurs Turso, doublons de profils… — rien ne part
-sur le vrai réseau) et la page affiche le total au vert ou les échecs en rouge.
+```bash
+./tests/run.sh      # → « ✅ 66/66 tests au vert » (code de sortie 0 ou 1)
+```
+
+Le script lance Chrome en headless sur `tests/index.html` ; ouvrir cette page à la main
+dans un navigateur marche tout aussi bien, avec les échecs en rouge. Dans les deux cas
+fetch est simulé — pannes de réseau, erreurs Turso, doublons de profils… — et rien ne part
+sur le vrai réseau.
 
 ## TODO
 

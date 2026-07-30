@@ -43,7 +43,18 @@ async function renderGuide(userId) {
 
   const persoEmoji = usersById.get(userId)?.emoji;
   const ratings = await Storage.getUserRatings(userId);
-  const rated = DOMAINES.filter(d => ratings[d.id]);
+
+  // Son classement à lui : les mêmes règles que le classement du groupe
+  // (classementDomaines, partagé avec les Classements et les Moyennes), mais
+  // sur ses seules fiches. Ses meilleurs domaines passent donc devant.
+  const classement = classementDomaines(
+    new Map(DOMAINES.map(d => [d.id, ratings[d.id] ? [ratings[d.id]] : []]))
+  );
+  // Une fiche sans aucune note de boisson (que des ❤️/⭐) n'a pas de place :
+  // elle ferme la marche, dans l'ordre des stands.
+  const rangDe = (d) => classement.get(d.id)?.rank ?? DOMAINES.length + 1;
+  const rated = DOMAINES.filter(d => ratings[d.id]).sort((a, b) => rangDe(a) - rangDe(b));
+  const MEDALS = ['🥇', '🥈', '🥉'];
 
   listEl.replaceChildren();
   emptyEl.hidden = rated.length > 0;
@@ -68,15 +79,32 @@ async function renderGuide(userId) {
     const title = document.createElement('div');
     title.className = 'guide-card-title';
 
+    // Sa place à lui, et la note qui la lui donne : 🥇 4,5/5
+    const place = classement.get(domaine.id);
+    const rank = document.createElement('span');
+    rank.className = 'guide-rank';
+    if (place) {
+      rank.textContent = `${MEDALS[place.rank - 1] || t('moy.rankBadge', { n: place.rank })} `
+        + t('guide.rankScore', { avg: place.avg.toFixed(1).replace('.', ',') });
+      rank.title = t('guide.rankTitle', { n: place.rank, avg: place.avg.toFixed(1) });
+    } else {
+      rank.textContent = '·';
+      rank.title = t('moy.rankNone');
+    }
+
     const name = document.createElement('span');
     name.className = 'domaine-name';
     name.textContent = `${domaine.stand} · ${domaine.name}`;
+
+    const left = document.createElement('span');
+    left.className = 'guide-card-left';
+    left.append(rank, name);
 
     const stickers = document.createElement('span');
     stickers.className = 'guide-stickers';
     stickers.textContent = stickerString(fiche, persoEmoji);
 
-    title.append(name, stickers);
+    title.append(left, stickers);
     li.appendChild(title);
 
     const notes = document.createElement('div');
@@ -93,7 +121,14 @@ async function renderGuide(userId) {
       li.appendChild(comment);
     }
 
-    if (fiche.photos?.length) li.appendChild(makePhotoStrip(fiche.photos));
+    // Les photos restent en base jusqu'à ce qu'on demande à les voir : un guide
+    // bien rempli en compte des dizaines, et elles arriveraient toutes d'un coup.
+    if (fiche.nb_photos) {
+      li.appendChild(makePhotoLoader(
+        fiche.nb_photos,
+        () => Storage.getFichePhotos(userId, domaine.id)
+      ));
+    }
 
     listEl.appendChild(li);
   }

@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title data-i18n="guide.pageTitle">MAXIguide — Guides des invités</title>
   <link rel="stylesheet" href="../../css/style.css">
+  <link rel="manifest" href="../../manifest.json">
+  <meta name="theme-color" content="#fdf4ee">
+  <link rel="icon" href="../../icon.svg">
+  <link rel="apple-touch-icon" href="../../icons/icon-512.png">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="MAXIguide">
 </head>
 <body>
   <main class="container">
@@ -34,7 +41,8 @@
       </section>
 
       <section>
-        <h2 data-i18n="guide.cards">Ses fiches</h2>
+        <h2 data-i18n="guide.cards">Son classement</h2>
+        <p class="muted" data-i18n="guide.cardsHint">Ses fiches, de son meilleur domaine au moins bon — avec sa note moyenne à lui.</p>
         <ul id="guide-list" class="guide-list">
           <!-- rempli par guide.js -->
         </ul>
@@ -63,5 +71,6 @@
   <script>const BASE = '../../';</script>
   <script src="../../js/header.js"></script>
   <script src="guide.js"></script>
+  <script src="../../js/pwa.js"></script>
 </body>
 </html>
