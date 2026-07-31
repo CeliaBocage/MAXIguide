@@ -3,14 +3,17 @@
 // localStorage. Toutes les méthodes de lecture/écriture sont async.
 //
 // Une fiche de notation (par utilisateur et par domaine) contient :
-//   note_blanc / note_rouge / note_rose : 1 à 5, null si pas goûté
+//   note_blanc / note_rouge / note_rose / note_methode / note_liqueur / note_jus :
+//          1 à 5, null si pas goûté
 //   coeur  : stickers « on a adoré les gens », 0 à 5 (1 = excellent, 5 = légendaire)
 //   etoile : stickers « vins excellents », 0 à 5 (même échelle)
 //   perso  : stickers persos du guide (son emoji à lui), 0 à 5 (même échelle)
 //   commentaire : texte libre, null si vide
 //   photos : data-URL JPEG compressées (voir js/photos.js), toujours un tableau
 //            côté JS (max 3), stocké en JSON dans la colonne photos (null si vide)
-const NOTE_KEYS = ['note_blanc', 'note_rouge', 'note_rose', 'note_whisky', 'note_jus'];
+const NOTE_KEYS = [
+  'note_blanc', 'note_rouge', 'note_rose', 'note_methode', 'note_liqueur', 'note_jus',
+];
 const STICKER_KEYS = ['coeur', 'etoile', 'perso'];
 
 // Une fiche enregistrée sans ses photos porte gardePhotos: true — la page de
@@ -222,8 +225,8 @@ const Storage = {
     let map;
     try {
       const rows = await dbExecute(
-        `SELECT domaine_id, note_blanc, note_rouge, note_rose, note_whisky, note_jus,
-                coeur, etoile, perso, commentaire,
+        `SELECT domaine_id, note_blanc, note_rouge, note_rose, note_methode,
+                note_liqueur, note_jus, coeur, etoile, perso, commentaire,
                 COALESCE(json_array_length(photos), 0) AS nb_photos
          FROM ratings WHERE user_id = ?`,
         [userId]
@@ -328,13 +331,15 @@ const Storage = {
 
     await dbExecute(
       `INSERT INTO ratings (user_id, domaine_id, note_blanc, note_rouge, note_rose,
-                            note_whisky, note_jus, coeur, etoile, perso, commentaire, photos)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            note_methode, note_liqueur, note_jus,
+                            coeur, etoile, perso, commentaire, photos)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
        ON CONFLICT (user_id, domaine_id) DO UPDATE SET
          note_blanc = excluded.note_blanc,
          note_rouge = excluded.note_rouge,
          note_rose = excluded.note_rose,
-         note_whisky = excluded.note_whisky,
+         note_methode = excluded.note_methode,
+         note_liqueur = excluded.note_liqueur,
          note_jus = excluded.note_jus,
          coeur = excluded.coeur,
          etoile = excluded.etoile,
@@ -360,8 +365,8 @@ const Storage = {
   async getAllRatings() {
     return dbExecute(
       `SELECT r.user_id, u.name AS user_name, u.emoji AS user_emoji, r.domaine_id,
-              r.note_blanc, r.note_rouge, r.note_rose, r.note_whisky, r.note_jus,
-              r.coeur, r.etoile, r.perso, r.commentaire,
+              r.note_blanc, r.note_rouge, r.note_rose, r.note_methode,
+              r.note_liqueur, r.note_jus, r.coeur, r.etoile, r.perso, r.commentaire,
               COALESCE(json_array_length(r.photos), 0) AS nb_photos
        FROM ratings r
        JOIN users u ON u.id = r.user_id

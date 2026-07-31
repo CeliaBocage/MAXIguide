@@ -12,7 +12,7 @@ function noteCell(boisson, value) {
   if (!value) return span;
 
   const emoji = document.createElement('span');
-  emoji.textContent = boisson.label.split(' ')[0];
+  emoji.textContent = boissonEmoji(boisson);
 
   const bottle = document.createElement('span');
   bottle.className = 'bottle-mini';

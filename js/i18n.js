@@ -124,7 +124,8 @@ const I18N = (() => {
       'boisson.blanc': '⚪ Blancs',
       'boisson.rouge': '🔴 Rouges',
       'boisson.rose': '🌸 Rosés',
-      'boisson.whisky': '🥃 Whisky',
+      'boisson.methode': '🥂 Méthode',
+      'boisson.liqueur': '🥃 Liqueurs',
       'boisson.jus': '🍇 Jus de raisin',
 
       // Page classements
@@ -339,7 +340,8 @@ const I18N = (() => {
       'boisson.blanc': '⚪ Whites',
       'boisson.rouge': '🔴 Reds',
       'boisson.rose': '🌸 Rosés',
-      'boisson.whisky': '🥃 Whisky',
+      'boisson.methode': '🥂 Sparkling',
+      'boisson.liqueur': '🥃 Liqueurs',
       'boisson.jus': '🍇 Grape juice',
 
       // Rankings page

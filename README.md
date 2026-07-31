@@ -6,7 +6,7 @@ Le jeu de dégustation de la fête des vins de Gaillac — site statique tout si
 
 Chaque invité choisit son profil (ou le crée, sans mot de passe), puis parcourt les 51 producteurs de la fête ([source](https://www.fete-vins-gaillac.com/les-vignerons)) et remplit sa fiche pour chaque stand dégusté :
 
-- une note de 1 à 5 ⭐ **par boisson** : blancs ⚪, rouges 🔴, rosés 🌸, whisky 🥃 (distillerie Castan, domaine Cazottes) et jus de raisin 🍇 pour les softs — les rangées s'adaptent au type de domaine ;
+- une note de 1 à 5 ⭐ **par boisson** : blancs ⚪, rouges 🔴, rosés 🌸, méthode ancestrale 🥂, liqueurs 🥃 (distillerie Castan, domaine Cazottes) et jus de raisin 🍇 pour les softs — les rangées s'adaptent au type de domaine ;
 - des **stickers** de 0 à 5 : ❤️ « on a adoré les gens », ⭐ « les vins étaient excellents » (1 c'est excellent, 2 c'est exceptionnel… 5 c'est légendaire) ;
 - un **commentaire libre** facultatif ;
 - jusqu'à **3 photos** 📷 si on a surkiffé une bouteille (compressées côté client, visibles dans les guides et les moyennes).
@@ -46,8 +46,8 @@ pages/
 └── guide/                    → guides des invités en lecture seule (?user=<id>)
 css/style.css                 → styles communs
 js/
-├── data/domaines.js          → les 51 producteurs (n° de stand, type vin/whisky/mixte)
-├── data/plan.js              → positions des stands sur le plan (rangées, provisoire)
+├── data/domaines.js          → les 51 producteurs (n° de stand, type vin/liqueur/mixte)
+├── data/plan.js              → positions des stands sur le plan (rangées + n° 1→60)
 ├── plan.js                   → rendu SVG du plan du parc (partagé domaines/guide)
 ├── db.js                     → client HTTP Turso (fetch, aucune dépendance)
 ├── photos.js                 → photos souvenirs : compression, vignettes, plein écran
@@ -72,7 +72,7 @@ Les profils et les fiches sont partagés entre tous les téléphones via une bas
 Tables (voir `schema.sql`) :
 
 - `users` — les profils (id, nom unique)
-- `ratings` — une fiche par utilisateur et par domaine : `note_blanc`, `note_rouge`, `note_rose`, `note_whisky`, `note_jus` (1–5 ou NULL), `coeur`, `etoile` (0–5), `commentaire`, `photos` (JSON de data-URL JPEG, max 3)
+- `ratings` — une fiche par utilisateur et par domaine : `note_blanc`, `note_rouge`, `note_rose`, `note_methode`, `note_liqueur`, `note_jus` (1–5 ou NULL), `coeur`, `etoile` (0–5), `commentaire`, `photos` (JSON de data-URL JPEG, max 3)
 
 ## Configurer la base Turso
 
@@ -105,5 +105,5 @@ sur le vrai réseau.
 
 ## TODO
 
-- [ ] Corriger l'attribution stand ↔ position sur le plan quand les numéros définitifs
-      seront connus (réordonner les tableaux `stands` dans `js/data/plan.js`)
+- [ ] Si la base a déjà tourné : appliquer les deux migrations liqueur/méthode
+      (`ALTER TABLE` en tête de `schema.sql`)

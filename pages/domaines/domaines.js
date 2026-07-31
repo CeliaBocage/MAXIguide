@@ -88,18 +88,17 @@ async function main() {
     const name = document.createElement('span');
     name.className = 'domaine-name';
     name.textContent = `${domaine.stand} · ${domaine.name}`;
-    if (domaine.type !== 'vin') name.textContent += domaine.type === 'whisky' ? ' 🥃' : ' 🍷🥃';
+    if (domaine.type !== 'vin') name.textContent += domaine.type === 'liqueur' ? ' 🥃' : ' 🍷🥃';
 
     const status = document.createElement('span');
     status.className = 'domaine-status';
     const fiche = ratings[domaine.id];
     if (fiche) {
+      // Une boisson notée = son emoji et sa note (l'ordre est celui de BOISSONS)
       const parts = [];
-      if (fiche.note_blanc) parts.push(`⚪${fiche.note_blanc}`);
-      if (fiche.note_rouge) parts.push(`🔴${fiche.note_rouge}`);
-      if (fiche.note_rose) parts.push(`🌸${fiche.note_rose}`);
-      if (fiche.note_whisky) parts.push(`🥃${fiche.note_whisky}`);
-      if (fiche.note_jus) parts.push(`🍇${fiche.note_jus}`);
+      for (const boisson of Object.values(BOISSONS)) {
+        if (fiche[boisson.key]) parts.push(`${boissonEmoji(boisson)}${fiche[boisson.key]}`);
+      }
       if (fiche.coeur) parts.push('❤️'.repeat(fiche.coeur));
       if (fiche.etoile) parts.push('⭐'.repeat(fiche.etoile));
       if (fiche.perso) parts.push((user.emoji || '✨').repeat(fiche.perso));

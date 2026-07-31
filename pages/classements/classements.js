@@ -61,7 +61,7 @@ function renderRankings(users, byUser, byDomaine) {
   const avgEntry = (name, s) =>
     ({ name, value: `${s.avg.toFixed(1)}/5 · ${countNotes(s.count)}` });
 
-  // Meilleur par boisson (blanc, rouge, rosé, whisky, jus)
+  // Meilleur par boisson (blanc, rouge, rosé, méthode, liqueur, jus)
   for (const boisson of Object.values(BOISSONS)) {
     const scored = DOMAINES
       .map(d => ({ d, s: drinkAvg(byDomaine.get(d.id), boisson.key) }))
@@ -78,7 +78,7 @@ function renderRankings(users, byUser, byDomaine) {
   for (const d of DOMAINES) {
     for (const boisson of getBoissons(d)) {
       const s = drinkAvg(byDomaine.get(d.id), boisson.key);
-      if (s) bottles.push({ name: `${boisson.label.split(' ')[0]} ${d.name}`, s });
+      if (s) bottles.push({ name: `${boissonEmoji(boisson)} ${d.name}`, s });
     }
   }
   bottles.sort((a, b) => byAvg(a.s, b.s));

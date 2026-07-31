@@ -1,5 +1,5 @@
 // Les 51 producteurs de la fête des vins de Gaillac 2026 (source : fete-vins-gaillac.com).
-// type : 'vin' (blancs/rouges/rosés), 'whisky' (distillerie), 'mixte' (les deux).
+// type : 'vin' (blancs/rouges/rosés/méthode), 'liqueur' (distillerie), 'mixte' (les deux).
 // Tous proposent aussi le jus de raisin pour les softs !
 const DOMAINES = [
   { id: 'vayssette', stand: '2', name: 'Domaine Vayssette', type: 'vin' },
@@ -34,7 +34,7 @@ const DOMAINES = [
   { id: 'rhodes', stand: '37', name: 'Château de Rhodes', type: 'vin' },
   { id: 'al-couderc', stand: '38', name: 'Domaine Al Couderc', type: 'vin' },
   { id: 'les-grezels', stand: '39', name: 'Domaine Les Grezels', type: 'vin' },
-  { id: 'castan', stand: '40', name: 'Distillerie Castan', type: 'whisky' },
+  { id: 'castan', stand: '40', name: 'Distillerie Castan', type: 'liqueur' },
   { id: 'rene-rieux', stand: '41', name: 'Domaine René Rieux', type: 'vin' },
   { id: 'enclos-des-songes', stand: '42', name: "L'Enclos des Songes", type: 'vin' },
   { id: 'philemon', stand: '43', name: 'Domaine Philémon', type: 'vin' },
@@ -59,18 +59,26 @@ const DOMAINES = [
 // color : teinte du liquide dans la bouteille-jauge de la page notation.
 // Les libellés viennent du dictionnaire i18n (js/i18n.js, chargé avant ce fichier).
 const BOISSONS = {
-  blanc:  { key: 'note_blanc',  label: t('boisson.blanc'),  color: '#e9c46a' },
-  rouge:  { key: 'note_rouge',  label: t('boisson.rouge'),  color: '#7b1e2b' },
-  rose:   { key: 'note_rose',   label: t('boisson.rose'),   color: '#f2a0b2' },
-  whisky: { key: 'note_whisky', label: t('boisson.whisky'), color: '#c67c2e' },
-  jus:    { key: 'note_jus',    label: t('boisson.jus'),    color: '#6d3a7c' },
+  blanc:   { key: 'note_blanc',   label: t('boisson.blanc'),   color: '#e9c46a' },
+  rouge:   { key: 'note_rouge',   label: t('boisson.rouge'),   color: '#7b1e2b' },
+  rose:    { key: 'note_rose',    label: t('boisson.rose'),    color: '#f2a0b2' },
+  methode: { key: 'note_methode', label: t('boisson.methode'), color: '#dfd97a' },
+  liqueur: { key: 'note_liqueur', label: t('boisson.liqueur'), color: '#c67c2e' },
+  jus:     { key: 'note_jus',     label: t('boisson.jus'),     color: '#6d3a7c' },
 };
 
 const TYPE_BOISSONS = {
-  vin: ['blanc', 'rouge', 'rose', 'jus'],
-  whisky: ['whisky', 'jus'],
-  mixte: ['blanc', 'rouge', 'rose', 'whisky', 'jus'],
+  vin: ['blanc', 'rouge', 'rose', 'methode', 'jus'],
+  liqueur: ['liqueur', 'jus'],
+  mixte: ['blanc', 'rouge', 'rose', 'methode', 'liqueur', 'jus'],
 };
+
+// L'emoji d'une boisson : c'est le premier mot de son libellé (⚪, 🔴, 🥂…).
+// Il sert partout où la place manque pour le nom complet (résumés de fiche,
+// vignettes des moyennes, podiums).
+function boissonEmoji(boisson) {
+  return boisson.label.split(' ')[0];
+}
 
 function getBoissons(domaine) {
   return TYPE_BOISSONS[domaine.type].map(k => BOISSONS[k]);

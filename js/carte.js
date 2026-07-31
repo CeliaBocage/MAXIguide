@@ -66,7 +66,9 @@ function cartePalette(domaineId) {
 // --- Notes --------------------------------------------------------------
 // Note moyenne d'un lot de fiches : moyenne de toutes les boissons notées
 // (1–5), toutes fiches confondues. null si personne n'a noté de boisson.
-const CARTE_NOTE_KEYS = ['note_blanc', 'note_rouge', 'note_rose', 'note_whisky', 'note_jus'];
+const CARTE_NOTE_KEYS = [
+  'note_blanc', 'note_rouge', 'note_rose', 'note_methode', 'note_liqueur', 'note_jus',
+];
 
 function carteScore(fiches) {
   let sum = 0;

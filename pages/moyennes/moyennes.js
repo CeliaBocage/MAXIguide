@@ -5,13 +5,13 @@ const pct = (ratio) => `${Math.round(ratio * 100)} %`;
 
 // Résumé compact d'une fiche : ⚪4 🔴3 ❤️❤️ ⭐ 🦄🦄 …
 // (le sticker perso s'affiche avec l'emoji du guide, u.emoji de getAllRatings)
+// Les boissons notées viennent de BOISSONS, dans son ordre : ajouter une
+// boisson là-bas suffit, son emoji est le premier mot de son libellé.
 function ficheParts(fiche) {
   const parts = [];
-  if (fiche.note_blanc) parts.push(`⚪${fiche.note_blanc}`);
-  if (fiche.note_rouge) parts.push(`🔴${fiche.note_rouge}`);
-  if (fiche.note_rose) parts.push(`🌸${fiche.note_rose}`);
-  if (fiche.note_whisky) parts.push(`🥃${fiche.note_whisky}`);
-  if (fiche.note_jus) parts.push(`🍇${fiche.note_jus}`);
+  for (const boisson of Object.values(BOISSONS)) {
+    if (fiche[boisson.key]) parts.push(`${boissonEmoji(boisson)}${fiche[boisson.key]}`);
+  }
   if (fiche.coeur) parts.push('❤️'.repeat(fiche.coeur));
   if (fiche.etoile) parts.push('⭐'.repeat(fiche.etoile));
   if (fiche.perso) parts.push((fiche.user_emoji || '✨').repeat(fiche.perso));
@@ -210,7 +210,7 @@ async function main() {
         const cell = document.createElement('span');
         cell.className = 'guide-note';
         const emoji = document.createElement('span');
-        emoji.textContent = boisson.label.split(' ')[0];
+        emoji.textContent = boissonEmoji(boisson);
         const bottle = document.createElement('span');
         bottle.className = 'bottle-mini';
         bottle.appendChild(makeBottleSvg(boisson.color, avg).svg);

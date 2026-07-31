@@ -223,7 +223,7 @@ async function main() {
     perso: existing.perso || 0,
   };
 
-  // Rangées de notes selon le type du domaine (vin, whisky ou les deux) + jus de raisin :
+  // Rangées de notes selon le type du domaine (vin, liqueur ou les deux) + jus de raisin :
   // une bouteille par boisson, qu'on remplit plus ou moins selon la note.
   const noteRows = document.getElementById('note-rows');
   for (const boisson of getBoissons(domaine)) {
